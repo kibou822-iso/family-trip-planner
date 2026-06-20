@@ -1,0 +1,182 @@
+:root {
+  --bg: #fff8ec;
+  --card: #ffffff;
+  --primary: #ff8a3d;
+  --primary-dark: #e8671b;
+  --accent: #44b3a7;
+  --text: #2c2a27;
+  --muted: #746b61;
+  --line: #f0dfc7;
+  --shadow: 0 14px 32px rgba(115, 78, 38, 0.14);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: var(--text);
+  background: radial-gradient(circle at top left, #ffe2a9 0, transparent 34%), var(--bg);
+  line-height: 1.65;
+}
+
+.hero {
+  padding: 28px 18px 24px;
+  text-align: center;
+  color: #fff;
+  background: linear-gradient(135deg, #ff9f4a, #ff6f61 58%, #f25f88);
+  border-bottom-left-radius: 28px;
+  border-bottom-right-radius: 28px;
+}
+
+.hero__badge {
+  display: inline-block;
+  padding: 6px 12px;
+  margin-bottom: 10px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  background: rgba(255, 255, 255, 0.22);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 999px;
+}
+
+h1, h2, h3 {
+  margin: 0 0 10px;
+  line-height: 1.25;
+}
+
+h1 {
+  font-size: clamp(2rem, 9vw, 3rem);
+}
+
+.hero p, .intro-card p, footer p {
+  margin: 0;
+}
+
+.app-shell {
+  width: min(100%, 720px);
+  margin: -12px auto 0;
+  padding: 0 14px 28px;
+}
+
+.card {
+  margin-bottom: 16px;
+  padding: 18px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  box-shadow: var(--shadow);
+}
+
+.intro-card {
+  position: relative;
+}
+
+.form-card {
+  display: grid;
+  gap: 14px;
+}
+
+label {
+  display: grid;
+  gap: 7px;
+  font-weight: 700;
+}
+
+input, select, button {
+  width: 100%;
+  min-height: 48px;
+  padding: 12px 14px;
+  font: inherit;
+  border-radius: 14px;
+}
+
+input, select {
+  color: var(--text);
+  background: #fffdf8;
+  border: 1px solid #ead7bc;
+}
+
+input:focus, select:focus {
+  outline: 3px solid rgba(68, 179, 167, 0.28);
+  border-color: var(--accent);
+}
+
+button {
+  margin-top: 6px;
+  font-weight: 800;
+  color: #fff;
+  cursor: pointer;
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  border: 0;
+  box-shadow: 0 10px 18px rgba(232, 103, 27, 0.25);
+}
+
+button:active {
+  transform: translateY(1px);
+}
+
+.result-card {
+  border-top: 7px solid var(--accent);
+}
+
+.is-hidden {
+  display: none;
+}
+
+.plan-heading {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.plan-area {
+  display: inline-flex;
+  width: fit-content;
+  padding: 6px 10px;
+  font-weight: 800;
+  color: #11685f;
+  background: #e4faf6;
+  border-radius: 999px;
+}
+
+.plan-grid {
+  display: grid;
+  gap: 12px;
+}
+
+.plan-section {
+  padding: 14px;
+  background: #fff9ef;
+  border: 1px dashed #f0c98f;
+  border-radius: 16px;
+}
+
+.plan-section h3 {
+  font-size: 1rem;
+  color: #bf551a;
+}
+
+.plan-section ul, .plan-section ol {
+  padding-left: 1.2em;
+  margin: 0;
+}
+
+footer {
+  padding: 0 18px 26px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+
+@media (min-width: 680px) {
+  .form-card {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .form-card button {
+    grid-column: 1 / -1;
+  }
+}

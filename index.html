@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ファミ旅プランナー</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="hero">
+    <div class="hero__badge">スマホでかんたん旅行相談</div>
+    <h1>ファミ旅プランナー</h1>
+    <p>出発地や家族構成に合わせて、子連れでも無理のないサンプル旅行プランを提案します。</p>
+  </header>
+
+  <main class="app-shell">
+    <section class="card intro-card" aria-labelledby="intro-title">
+      <h2 id="intro-title">まずは家族の希望を教えてください</h2>
+      <p>外部APIや予約機能は使わず、入力内容に合わせて静的なサンプルプランを表示します。</p>
+    </section>
+
+    <form id="tripForm" class="card form-card">
+      <label>
+        出発地
+        <input type="text" id="departure" name="departure" placeholder="例：東京、名古屋、大阪" required>
+      </label>
+
+      <label>
+        旅行日数
+        <select id="days" name="days" required>
+          <option value="1">日帰り</option>
+          <option value="2" selected>1泊2日</option>
+          <option value="3">2泊3日</option>
+          <option value="4">3泊以上</option>
+        </select>
+      </label>
+
+      <label>
+        移動手段
+        <select id="transport" name="transport" required>
+          <option value="car">車</option>
+          <option value="train">電車・新幹線</option>
+          <option value="plane">飛行機</option>
+          <option value="bus">高速バス</option>
+        </select>
+      </label>
+
+      <label>
+        家族構成
+        <input type="text" id="family" name="family" placeholder="例：大人2人・子ども2人" required>
+      </label>
+
+      <label>
+        子どもの年齢
+        <input type="text" id="ages" name="ages" placeholder="例：3歳、7歳" required>
+      </label>
+
+      <label>
+        優先したい目的
+        <select id="purpose" name="purpose" required>
+          <option value="nature">自然を楽しむ</option>
+          <option value="animals">動物とふれあう</option>
+          <option value="onsen">温泉でのんびり</option>
+          <option value="sea">海・水遊び</option>
+          <option value="food">食事を楽しむ</option>
+          <option value="rainy">雨でも遊べる</option>
+        </select>
+      </label>
+
+      <label>
+        予算
+        <select id="budget" name="budget" required>
+          <option value="low">できるだけ控えめ</option>
+          <option value="standard" selected>標準</option>
+          <option value="relaxed">少しゆったり</option>
+        </select>
+      </label>
+
+      <label>
+        片道の移動許容時間
+        <select id="travelTime" name="travelTime" required>
+          <option value="1">1時間以内</option>
+          <option value="2" selected>2時間以内</option>
+          <option value="3">3時間以内</option>
+          <option value="4">4時間以上もOK</option>
+        </select>
+      </label>
+
+      <button type="submit">家族旅行プランを作る</button>
+    </form>
+
+    <section id="result" class="card result-card is-hidden" aria-live="polite"></section>
+  </main>
+
+  <footer>
+    <p>GitHub Pagesでそのまま公開しやすい、HTML / CSS / JavaScriptのみの静的Webアプリです。</p>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
