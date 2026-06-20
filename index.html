@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ファミ旅プランナー</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="hero">
+    <div class="hero__badge">家族旅行の相談メモを3案で提案</div>
+    <h1>ファミ旅プランナー</h1>
+    <p>出発地・人数・子どもの年齢・目的・予算に合わせて、本命プランと別案を静的データから提案します。</p>
+  </header>
+
+  <main class="app-shell">
+    <section class="card intro-card" aria-labelledby="intro-title">
+      <h2 id="intro-title">家族の希望を整理しましょう</h2>
+      <p>外部APIや予約機能は使わず、GitHub Pagesでそのまま動くHTML / CSS / JavaScriptだけの初期版です。入力後は本命プランと別案をあわせて3案以上表示します。</p>
+    </section>
+
+    <form id="tripForm" class="planner-form">
+      <section class="card form-section">
+        <h2>基本条件</h2>
+        <label>
+          出発地
+          <select id="departure" name="departure" required>
+            <option value="大阪">大阪</option>
+            <option value="高槻" selected>高槻</option>
+            <option value="京都">京都</option>
+            <option value="新潟">新潟</option>
+            <option value="その他">その他</option>
+          </select>
+        </label>
+        <div class="form-grid">
+          <label>
+            旅行日数
+            <select id="days" name="days" required>
+              <option value="1">日帰り</option>
+              <option value="2" selected>1泊2日</option>
+              <option value="3">2泊3日</option>
+            </select>
+          </label>
+          <label>
+            移動手段
+            <select id="transport" name="transport" required>
+              <option value="car">車</option>
+              <option value="train">電車・新幹線</option>
+              <option value="plane">飛行機</option>
+              <option value="bus">高速バス</option>
+            </select>
+          </label>
+        </div>
+        <label>
+          片道の移動許容時間
+          <select id="travelTime" name="travelTime" required>
+            <option value="1">1時間以内</option>
+            <option value="2" selected>2時間以内</option>
+            <option value="3">3時間以内</option>
+            <option value="4">4時間以上もOK</option>
+          </select>
+        </label>
+      </section>
+
+      <section class="card form-section">
+        <h2>人数と子どもの年齢</h2>
+        <div class="form-grid">
+          <label>
+            大人の人数
+            <select id="adultCount" name="adultCount" required></select>
+          </label>
+          <label id="adultCustomWrap" class="is-hidden">
+            大人の人数を入力
+            <input type="number" id="adultCustom" name="adultCustom" min="10" placeholder="例：12">
+          </label>
+          <label>
+            子どもの人数
+            <select id="childCount" name="childCount" required></select>
+          </label>
+          <label id="childCustomWrap" class="is-hidden">
+            子どもの人数を入力
+            <input type="number" id="childCustom" name="childCustom" min="10" placeholder="例：11">
+          </label>
+        </div>
+        <div id="childAgesWrap" class="child-ages is-hidden">
+          <h3>子どもの年齢</h3>
+          <div id="childAges" class="form-grid"></div>
+        </div>
+      </section>
+
+      <section class="card form-section">
+        <h2>旅の希望</h2>
+        <label>
+          優先したい目的
+          <select id="purpose" name="purpose" required>
+            <option value="温泉でのんびり">温泉でのんびり</option>
+            <option value="自然を楽しむ" selected>自然を楽しむ</option>
+            <option value="動物・水族館">動物・水族館</option>
+            <option value="海・魚料理">海・魚料理</option>
+            <option value="雨でも楽しめる">雨でも楽しめる</option>
+            <option value="食事重視">食事重視</option>
+            <option value="その他">その他</option>
+          </select>
+        </label>
+        <label>
+          目的の自由入力
+          <input type="text" id="purposeFree" name="purposeFree" placeholder="例：川遊び、日本酒、恐竜、牧場、海鮮、神社仏閣">
+        </label>
+        <label>
+          予算
+          <select id="budget" name="budget" required>
+            <option value="20000">〜2万円</option>
+            <option value="40000" selected>〜4万円</option>
+            <option value="60000">〜6万円</option>
+            <option value="80000">〜8万円</option>
+            <option value="100000">〜10万円</option>
+            <option value="150000">10〜15万円</option>
+            <option value="200000">15〜20万円</option>
+            <option value="999999">それ以上</option>
+          </select>
+        </label>
+        <button type="submit">具体的な旅行プランを3案作る</button>
+      </section>
+    </form>
+
+    <section id="result" class="results is-hidden" aria-live="polite"></section>
+  </main>
+
+  <footer>
+    <p>静的データで動くため、予約・空室・料金は公式サイト等で確認してください。</p>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
