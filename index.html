@@ -3,49 +3,67 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ファミ旅プランナー</title>
+  <title>ファミリー旅行プランナー</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <header class="hero">
-    <div class="hero__badge">家族旅行をチャット相談のように整理</div>
-    <h1>ファミ旅プランナー</h1>
-    <p>出発地、人数、子どもの年齢、目的、予算に合わせて、1泊2日の具体的な旅行プランを複数提案します。</p>
+    <div class="hero__badge">家族旅行をサクッと相談</div>
+    <h1>ファミリー旅行プランナー</h1>
+    <p>出発地、日数、移動手段、希望に合わせて、子連れでも動きやすい旅行プランを提案します。</p>
   </header>
 
   <main class="app-shell">
     <section class="card intro-card" aria-labelledby="intro-title">
-      <h2 id="intro-title">家族の希望を教えてください</h2>
+      <h2 id="intro-title">家族の希望を入力してください</h2>
       <p>外部APIや予約機能は使わず、GitHub Pagesでそのまま動く静的な旅行相談アプリです。</p>
     </section>
 
     <form id="tripForm" class="card form-card">
-      <label>
+      <label class="wide-field">
         出発地
-        <select id="departure" name="departure" required>
-          <option value="大阪">大阪</option>
-          <option value="高槻">高槻</option>
-          <option value="京都">京都</option>
-          <option value="新潟">新潟</option>
-          <option value="その他">その他</option>
+        <input type="text" id="departure" name="departure" placeholder="市または地域" required>
+      </label>
+
+      <label>
+        日数
+        <select id="duration" name="duration" required>
+          <option value="daytrip">日帰り</option>
+          <option value="1night">1泊2日</option>
+          <option value="2nights">2泊3日</option>
+          <option value="3nights">3泊4日</option>
+          <option value="longer">それ以上</option>
         </select>
       </label>
 
       <label>
-        目的
-        <select id="purpose" name="purpose" required>
-          <option value="nature">自然を楽しむ</option>
-          <option value="animals">動物とふれあう</option>
-          <option value="onsen">温泉でのんびり</option>
-          <option value="sea">海・水遊び</option>
-          <option value="food">食事を楽しむ</option>
-          <option value="rainy">雨でも遊べる</option>
+        移動手段
+        <select id="transport" name="transport" required>
+          <option value="car">車</option>
+          <option value="train">電車</option>
+          <option value="shinkansen">新幹線</option>
+          <option value="flight">飛行機</option>
+          <option value="bus">バス</option>
+          <option value="walk-bike">徒歩・自転車</option>
+          <option value="other">その他</option>
+        </select>
+      </label>
+
+      <label>
+        希望移動時間
+        <select id="travelTime" name="travelTime" required>
+          <option value="30m">30分以内</option>
+          <option value="1h">1時間以内</option>
+          <option value="2h" selected>2時間以内</option>
+          <option value="3h">3時間以内</option>
+          <option value="4h">4時間以内</option>
+          <option value="4hplus">4時間以上も可</option>
         </select>
       </label>
 
       <label class="wide-field">
-        目的の自由入力
-        <input type="text" id="purposeNote" name="purposeNote" placeholder="例：ベビーカーで行きやすい、祖父母も一緒、移動は短め">
+        目的
+        <input type="text" id="purpose" name="purpose" placeholder="温泉、海鮮、自然、雨の日、子どもが遊べる場所など" required>
       </label>
 
       <label>
@@ -73,7 +91,7 @@
         <div id="ageInputs" class="age-grid"></div>
       </fieldset>
 
-      <label>
+      <label class="wide-field">
         予算
         <select id="budget" name="budget" required>
           <option value="under20">〜2万円</option>

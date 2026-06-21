@@ -12,13 +12,31 @@ const ageInputs = document.querySelector('#ageInputs');
 const childAgeOptions = ['0歳', '1歳', '2歳', '3歳', '4歳', '5歳', '6歳', '7歳', '8歳', '9歳', '10歳', '11歳', '12歳', '13歳以上'];
 const maxVisibleAgeFields = 12;
 
-const purposes = {
-  nature: '自然を楽しむ',
-  animals: '動物とふれあう',
-  onsen: '温泉でのんびり',
-  sea: '海・水遊び',
-  food: '食事を楽しむ',
-  rainy: '雨でも遊べる'
+const durations = {
+  daytrip: { label: '日帰り', days: 1, nights: 0 },
+  '1night': { label: '1泊2日', days: 2, nights: 1 },
+  '2nights': { label: '2泊3日', days: 3, nights: 2 },
+  '3nights': { label: '3泊4日', days: 4, nights: 3 },
+  longer: { label: 'それ以上', days: 5, nights: 4 }
+};
+
+const transports = {
+  car: '車',
+  train: '電車',
+  shinkansen: '新幹線',
+  flight: '飛行機',
+  bus: 'バス',
+  'walk-bike': '徒歩・自転車',
+  other: 'その他'
+};
+
+const travelTimes = {
+  '30m': '30分以内',
+  '1h': '1時間以内',
+  '2h': '2時間以内',
+  '3h': '3時間以内',
+  '4h': '4時間以内',
+  '4hplus': '4時間以上も可'
 };
 
 const budgets = {
@@ -33,248 +51,70 @@ const budgets = {
 };
 
 const budgetAdvice = {
-  under20: '無料や低価格の公園、道の駅、公共施設を軸に、食事は名物を1回だけ入れると満足度を保ちやすいです。',
-  under40: '移動費を抑えながら、有料スポットを1つに絞ると無理がありません。',
-  under60: '体験、食事、温泉のうち2つをしっかり入れられる現実的な予算感です。',
-  under80: '宿の選択肢が広がるため、休憩しやすい和室や大浴場付きも狙えます。',
-  under100: '移動の快適さや個室食、雨の日施設まで余裕を持って組み込めます。',
-  '100to150': '宿の滞在時間を長めに取り、食事や体験を少し上質にできます。',
-  '150to200': '移動時間の短縮、温泉宿、屋内体験を組み合わせやすい予算です。',
-  over200: '宿、食事、移動の快適性を優先して、予定を詰め込まない贅沢な設計が向いています。'
-};
-
-const departurePlans = {
-  '大阪': [
-    {
-      name: '淡路島の海辺リゾートゆったり旅',
-      area: '兵庫・淡路島',
-      tags: ['sea', 'food', 'nature'],
-      concept: '海、公園、道の駅を短い移動でつなぐ、子どものペース優先の1泊2日。',
-      reason: '大阪から車で向かいやすく、海沿いの公園や屋内寄りの立ち寄り先も選べます。食事も海鮮、淡路牛、うどんなど取り分けしやすい候補が多いです。',
-      day1: { morning: '明石海峡大橋を渡り、淡路サービスエリアで景色とトイレ休憩', lunch: '淡路島産玉ねぎを使ったハンバーグやうどんのランチ', afternoon: '国営明石海峡公園または淡路島公園で短めに遊ぶ', lodging: '洲本温泉または海沿いホテルで早めにチェックイン' },
-      day2: { morning: 'のじまスコーラ周辺で買い物とカフェ休憩', lunch: '道の駅あわじで海鮮丼、しらす丼、キッズ向け麺類', afternoon: '橋を望む海辺で写真を撮り、渋滞前に出発', returnTrip: '夕方前に大阪方面へ。眠くなる時間を帰路に合わせる' },
-      rest: '淡路SA、道の駅あわじ、海沿い公園のベンチを固定休憩にします。',
-      meals: 'しらす丼、淡路牛ハンバーグ、玉ねぎうどん、ジェラート。',
-      rainy: '淡路夢舞台の屋内動線、ホテル滞在長め、買い物中心に切り替え。',
-      caution: '週末は橋周辺が混みやすいため、帰路は早めが安心です。',
-      fit: '海を見たいけれど、移動と予定を詰め込みたくない家族。'
-    },
-    {
-      name: '奈良公園と温泉でのんびり旅',
-      area: '奈良・奈良市〜天理',
-      tags: ['animals', 'onsen', 'food'],
-      concept: '鹿とのふれあいを短時間に絞り、午後は宿や温浴施設で休む近場旅。',
-      reason: '大阪から近く、子どもの疲れが出たら予定を減らしやすい距離感です。観光、食事、休憩の切り替えがしやすいのも魅力です。',
-      day1: { morning: '奈良公園を短めに散策し、鹿せんべいは混雑の少ない場所で体験', lunch: 'ならまち周辺で釜飯、うどん、定食ランチ', afternoon: '東大寺は外観中心にして、カフェで休憩', lodging: '奈良市内ホテルまたは天理方面の温浴付き宿' },
-      day2: { morning: '平城宮跡歴史公園で広く歩くか、屋内展示を見学', lunch: '道の駅レスティ唐古・鍵で軽めのランチ', afternoon: 'お土産購入後、早めに帰路へ', returnTrip: '阪奈道路や第二阪奈の混雑前に大阪へ戻る' },
-      rest: '奈良公園周辺の観光案内所、商業施設、平城宮跡の屋内施設。',
-      meals: '釜飯、柿の葉寿司、三輪そうめん、和スイーツ。',
-      rainy: '奈良国立博物館、平城宮いざない館、商業施設中心に変更。',
-      caution: '鹿に近づきすぎないこと、ベビーカーは人混みの少ない道を選ぶこと。',
-      fit: '動物体験を少し入れつつ、近場で安心して泊まりたい家族。'
-    },
-    {
-      name: '有馬温泉ごほうびステイ',
-      area: '兵庫・有馬温泉',
-      tags: ['onsen', 'rainy', 'food'],
-      concept: '観光は控えめ、宿の温泉と食事を主役にする休息重視プラン。',
-      reason: '大阪から短時間で行きやすく、雨でも宿時間を楽しめます。小さな子ども連れでも予定を削りやすい構成です。',
-      day1: { morning: '午前はゆっくり出発し、有馬温泉街へ', lunch: '温泉街でそば、うどん、洋食など食べやすい昼食', afternoon: '温泉街を30〜60分だけ散策して宿へ', lodging: '家族風呂や大浴場のある宿で早めに休憩' },
-      day2: { morning: '朝風呂後、チェックアウトまで宿でのんびり', lunch: '神戸三田方面でベーカリーやフードコートランチ', afternoon: 'めんたいパーク神戸三田など屋内施設に寄る', returnTrip: '午後の早い時間に大阪へ戻る' },
-      rest: '宿ロビー、温泉街の足湯、三田の商業施設。',
-      meals: '温泉まんじゅう、そば、神戸三田のベーカリー、宿の会席。',
-      rainy: '温泉街散策を短縮し、宿滞在と屋内施設を長めに。',
-      caution: '坂道が多いので、ベビーカーより抱っこひもが便利な場面があります。',
-      fit: '観光よりも温泉、昼寝、食事を優先したい家族。'
-    }
-  ],
-  '高槻': [
-    {
-      name: 'びわ湖テラスと湖畔ステイ',
-      area: '滋賀・大津〜湖西',
-      tags: ['nature', 'sea', 'food'],
-      concept: '湖の景色と広い公園を組み合わせる、開放感のある近距離旅。',
-      reason: '高槻から京都東方面へ出やすく、琵琶湖周辺は休憩場所を取りやすいです。自然を感じながら移動負担を抑えられます。',
-      day1: { morning: '湖西方面へ移動し、道の駅や湖畔で休憩', lunch: '琵琶湖周辺で近江牛コロッケ、定食、キッズ対応カフェ', afternoon: 'びわ湖バレイまたは湖畔公園で景色を楽しむ', lodging: '大津またはおごと温泉の宿で早めにチェックイン' },
-      day2: { morning: 'びわ湖こどもの国や湖畔散歩を短時間', lunch: '道の駅藤樹の里あどがわなどで軽めに食事', afternoon: '湖岸道路を走りながら休憩を挟む', returnTrip: '京都東ICや湖西道路の混雑を見て高槻へ' },
-      rest: '湖畔公園、道の駅、宿のロビーを休憩の軸にします。',
-      meals: '近江牛コロッケ、湖魚料理、ちゃんぽん、ベーカリー。',
-      rainy: '琵琶湖博物館、ピエリ守山、宿滞在中心に変更。',
-      caution: '山上施設は天候で体感温度が変わるため羽織りが必要です。',
-      fit: '自然の景色を見たい、でも長距離運転は避けたい家族。'
-    },
-    {
-      name: '嵐山と湯の花温泉の近場旅',
-      area: '京都・嵐山〜亀岡',
-      tags: ['onsen', 'nature', 'food'],
-      concept: '午前は京都らしい景色、午後は温泉宿で休むゆったり旅。',
-      reason: '高槻からアクセスしやすく、観光を短時間に絞れば子連れでも動きやすい距離です。',
-      day1: { morning: '嵐山で渡月橋周辺を短めに散策', lunch: '湯豆腐、うどん、和カフェなど取り分けしやすい昼食', afternoon: 'トロッコ列車または亀岡方面へ移動', lodging: '湯の花温泉で早めにチェックイン' },
-      day2: { morning: '宿周辺で朝の散歩、または京都鉄道博物館へ', lunch: '亀岡の道の駅または京都駅周辺でランチ', afternoon: 'お土産を買って無理なく帰る', returnTrip: '夕方の市街地混雑前に高槻へ' },
-      rest: '嵐山駅周辺、道の駅ガレリアかめおか、宿。',
-      meals: '湯豆腐、京うどん、だし巻き、和スイーツ。',
-      rainy: '京都鉄道博物館、水族館、宿滞在へ切り替え。',
-      caution: '嵐山は混雑しやすいので、散策範囲を最初から絞ります。',
-      fit: '京都感と温泉の両方を少しずつ楽しみたい家族。'
-    },
-    {
-      name: '神戸どうぶつ王国と港町ホテル',
-      area: '兵庫・神戸',
-      tags: ['animals', 'rainy', 'food'],
-      concept: '屋内外の動物体験と港町グルメを組み合わせる天候に強い旅。',
-      reason: '屋内エリアが多く、雨や暑さの日でも予定を大きく崩さず遊べます。',
-      day1: { morning: '神戸どうぶつ王国へ直行し、午前の元気な時間に見学', lunch: '施設内または三宮周辺でキッズ対応ランチ', afternoon: 'ホテルへ移動し、港周辺を短く散歩', lodging: '三宮またはハーバーランド周辺ホテル' },
-      day2: { morning: '神戸海洋博物館やatoaなど屋内施設を選択', lunch: '南京町またはハーバーランドで取り分けランチ', afternoon: 'お土産購入後、早めに帰路へ', returnTrip: '名神や阪神高速の渋滞前に高槻へ' },
-      rest: '動物王国の休憩席、商業施設、ホテル。',
-      meals: '洋食、パン、中華まん、フードコート。',
-      rainy: 'どうぶつ王国、atoa、umie中心で屋内完結。',
-      caution: '人気施設は午前中に入り、午後は休憩を長めに取ります。',
-      fit: '動物好き、雨でも満足できる行き先を探す家族。'
-    }
-  ],
-  '京都': [
-    {
-      name: '丹後の海と温泉リセット旅',
-      area: '京都・天橋立〜夕日ヶ浦',
-      tags: ['sea', 'onsen', 'food'],
-      concept: '海辺の景色、温泉、海鮮を楽しむ京都発の王道1泊2日。',
-      reason: '京都市内から北へ向かえば、非日常感のある海旅になります。観光を絞ると子連れでも動きやすいです。',
-      day1: { morning: '天橋立へ移動し、途中の道の駅で休憩', lunch: '宮津周辺で海鮮丼、うどん、定食ランチ', afternoon: '天橋立ビューランドまたは砂浜散歩を短時間', lodging: '夕日ヶ浦または天橋立温泉の宿' },
-      day2: { morning: '朝の海辺散歩、または宿でゆっくり', lunch: '丹後王国食のみやこでランチと買い物', afternoon: '子どもの疲れに合わせて休憩しながら南下', returnTrip: '夕方前に京都市内へ戻る' },
-      rest: '道の駅、丹後王国、宿のラウンジ。',
-      meals: '海鮮丼、へしこ茶漬け、丹後ばら寿司、ジェラート。',
-      rainy: '丹後王国、智恩寺周辺の短時間散策、宿滞在に変更。',
-      caution: '移動が長めなので、午前出発と車内おやつの準備が大切です。',
-      fit: '京都から海を見に行きたい、温泉も重視したい家族。'
-    },
-    {
-      name: '滋賀ブルーメの丘と近江八幡',
-      area: '滋賀・日野〜近江八幡',
-      tags: ['animals', 'nature', 'food'],
-      concept: '動物、遊具、町歩きを一度に楽しむ、ほどよい外遊び旅。',
-      reason: '京都から車で行きやすく、子どもが体を動かせる時間を作りやすいです。',
-      day1: { morning: '滋賀農業公園ブルーメの丘で動物ふれあい', lunch: '園内レストランでソーセージやカレー', afternoon: '遊具や季節の花を見て、疲れる前に宿へ', lodging: '近江八幡または守山周辺のホテル' },
-      day2: { morning: '近江八幡の水郷周辺を短く散策', lunch: 'ラ コリーナ近江八幡周辺で軽食やスイーツ', afternoon: 'お土産購入とカフェ休憩', returnTrip: '名神方面で京都へ戻る' },
-      rest: '園内休憩所、ラ コリーナ、ホテル。',
-      meals: '近江牛コロッケ、バームクーヘン、カレー、うどん。',
-      rainy: 'ラ コリーナ、琵琶湖博物館、ショッピング施設に切り替え。',
-      caution: '屋外時間が長いので、夏は午前中心、冬は防寒を意識します。',
-      fit: '動物や外遊びを入れたい、食事やスイーツも楽しみたい家族。'
-    },
-    {
-      name: '京都鉄道博物館と梅小路ステイ',
-      area: '京都・梅小路〜京都駅',
-      tags: ['rainy', 'food', 'animals'],
-      concept: '移動を最小限にして、屋内施設を中心に遊ぶ安心プラン。',
-      reason: '雨の日でも成立しやすく、乳幼児連れでも休憩場所を確保しやすいエリアです。',
-      day1: { morning: '京都鉄道博物館で展示と体験を楽しむ', lunch: '梅小路公園周辺のカフェやフードホール', afternoon: '京都水族館または公園を短時間', lodging: '京都駅または梅小路周辺ホテル' },
-      day2: { morning: 'ホテルでゆっくり朝食後、京都駅周辺で買い物', lunch: '駅ビルで子どもが食べやすいランチ', afternoon: '体力があれば東寺周辺を短く散策', returnTrip: '荷物を増やしすぎず帰宅' },
-      rest: '博物館内、駅ビル、ホテル。',
-      meals: '駅ビルの和食、洋食、ラーメン、ベーカリー。',
-      rainy: '鉄道博物館と水族館を中心にして屋内移動を優先。',
-      caution: '近場でも歩数が増えやすいので、午後は予定を1つだけにします。',
-      fit: '雨対策を重視し、移動短めで子どもを飽きさせたくない家族。'
-    }
-  ],
-  '新潟': [
-    {
-      name: '越後湯沢の温泉と雪国体験',
-      area: '新潟・越後湯沢',
-      tags: ['onsen', 'nature', 'food'],
-      concept: '駅近で動きやすく、温泉と屋内外の体験を選べる旅。',
-      reason: '新潟県内から向かいやすく、天候に合わせてロープウェイ、温泉、屋内施設を組み替えられます。',
-      day1: { morning: '越後湯沢へ移動し、駅周辺で休憩', lunch: '駅ナカでへぎそば、魚沼産コシヒカリのおにぎり', afternoon: '湯沢高原ロープウェイまたは駅周辺散策', lodging: '越後湯沢温泉の宿で早めに入浴' },
-      day2: { morning: '宿で朝風呂後、雪国館や屋内施設へ', lunch: '道の駅または駅周辺で定食ランチ', afternoon: 'お土産を買い、休憩を挟みながら帰路へ', returnTrip: '眠くなる時間を移動に合わせて新潟方面へ' },
-      rest: '越後湯沢駅、宿、道の駅。',
-      meals: 'へぎそば、笹団子、魚沼米おにぎり、定食。',
-      rainy: '雪国館、駅ナカ、宿の温泉時間を長めに。',
-      caution: '冬は道路状況と防寒、夏は山上の天候変化を確認します。',
-      fit: '温泉と新潟らしい食事を無理なく楽しみたい家族。'
-    },
-    {
-      name: '弥彦神社と寺泊グルメ旅',
-      area: '新潟・弥彦〜寺泊',
-      tags: ['food', 'nature', 'sea'],
-      concept: '参道散策、海鮮、海辺を短い区間でつなぐ食重視プラン。',
-      reason: '新潟市方面からも行きやすく、食事候補が豊富です。海と山の両方を少しずつ楽しめます。',
-      day1: { morning: '弥彦神社周辺を短く散策し、参道で休憩', lunch: '弥彦周辺で釜飯、そば、定食', afternoon: '弥彦山ロープウェイまたは公園遊び', lodging: '岩室温泉または弥彦温泉の宿' },
-      day2: { morning: '寺泊魚の市場通りで買い物', lunch: '海鮮丼、焼き魚、子ども向け麺類', afternoon: '海辺で写真を撮り、早めに帰る', returnTrip: '夕方の混雑前に新潟方面へ' },
-      rest: '弥彦公園、参道カフェ、寺泊の休憩所。',
-      meals: '海鮮丼、浜焼き、そば、温泉まんじゅう。',
-      rainy: '市場通りで買い物、宿滞在、カフェ休憩中心に変更。',
-      caution: '市場は混雑しやすいので、子どもと手をつなぎやすい時間帯を選びます。',
-      fit: '食事を楽しみつつ、温泉と軽い散策も入れたい家族。'
-    },
-    {
-      name: '上越水族館とうみがたり旅',
-      area: '新潟・上越',
-      tags: ['sea', 'rainy', 'animals'],
-      concept: '水族館を主役に、雨でも成立する海辺の1泊2日。',
-      reason: '屋内滞在を長く取れるため、天候や年齢差があっても調整しやすいです。',
-      day1: { morning: '上越方面へ移動し、途中でサービスエリア休憩', lunch: '直江津周辺で海鮮、ラーメン、定食', afternoon: '上越市立水族博物館うみがたりを見学', lodging: '上越市内ホテルまたは近隣温泉宿' },
-      day2: { morning: '高田城址公園や屋内施設を選択', lunch: '道の駅あらいでランチと買い物', afternoon: '子どもの疲れを見て短めに出発', returnTrip: '休憩を挟みながら新潟方面へ' },
-      rest: '水族館内、道の駅あらい、ホテル。',
-      meals: '海鮮、妙高とん汁ラーメン、定食、ジェラート。',
-      rainy: '水族館滞在を長めにし、道の駅とホテル中心に。',
-      caution: '新潟県内でも移動距離があるため、2日目は早め帰路が安心です。',
-      fit: '水族館や海の生き物が好きで、雨対策も重視したい家族。'
-    }
-  ],
-  'その他': [
-    {
-      name: '近場温泉と道の駅リラックス旅',
-      area: '出発地から片道1〜2時間の温泉地',
-      tags: ['onsen', 'food', 'rainy'],
-      concept: '観光を増やさず、温泉宿と道の駅を軸にする疲れにくい旅。',
-      reason: '出発地がどこでも組み立てやすく、子どもの年齢や天気に合わせて調整しやすいです。',
-      day1: { morning: '自宅を遅めに出発し、道の駅で休憩', lunch: '地元食材の定食や麺類', afternoon: '温泉街を短く散策して宿へ', lodging: '家族風呂や和室のある温泉宿' },
-      day2: { morning: '朝風呂と宿周辺の散歩', lunch: '道の駅または駅ビルで軽めに食事', afternoon: 'お土産購入のみで予定を詰めない', returnTrip: '昼寝時間に合わせて帰路へ' },
-      rest: '道の駅、宿、駅ビルや商業施設。',
-      meals: '地元定食、うどん、カレー、ソフトクリーム。',
-      rainy: '宿滞在、道の駅、屋内資料館に寄せます。',
-      caution: '宿は子ども用食器、添い寝、貸切風呂の条件を確認します。',
-      fit: 'まずは無理のない家族旅行を試したい家族。'
-    },
-    {
-      name: '大型公園と屋内ミュージアム旅',
-      area: '近隣県の公園・博物館エリア',
-      tags: ['nature', 'rainy', 'animals'],
-      concept: '晴れなら公園、雨なら屋内施設に切り替える安心プラン。',
-      reason: '天候に左右されにくく、年齢差のあるきょうだいでも満足しやすい構成です。',
-      day1: { morning: '大型公園または動物公園へ移動', lunch: '園内カフェや持ち込み弁当で昼食', afternoon: '遊具や芝生で短時間遊び、早めに宿へ', lodging: '近隣ホテルまたは温浴施設付き宿' },
-      day2: { morning: '体験型ミュージアムや科学館へ', lunch: '商業施設のフードコート', afternoon: '買い物と休憩だけにして帰路へ', returnTrip: '夕方前に帰宅できる時間配分' },
-      rest: '公園の屋根付きベンチ、科学館、商業施設。',
-      meals: '弁当、フードコート、ベーカリー、地域の定食。',
-      rainy: '1日目から科学館や水族館中心に変更。',
-      caution: '公園は広すぎることがあるため、入口近くのエリアに絞ります。',
-      fit: '外遊びも屋内遊びも保険として持っておきたい家族。'
-    },
-    {
-      name: '駅近ホテルで食べ歩き旅',
-      area: '主要駅周辺の観光・グルメエリア',
-      tags: ['food', 'rainy', 'sea'],
-      concept: '車なしでも動きやすい駅近滞在で、食事と短い観光を楽しむ旅。',
-      reason: '荷物をホテルに預けやすく、雨や疲れが出たときにすぐ休めます。',
-      day1: { morning: '主要駅へ移動し、ホテルに荷物を預ける', lunch: '駅ビルや商店街で名物ランチ', afternoon: '徒歩圏の観光スポットを1つだけ見る', lodging: '駅近ホテルで早めに休憩' },
-      day2: { morning: '朝食後、屋内施設や市場を短時間', lunch: '取り分けしやすい定食や麺類', afternoon: '駅でお土産を買って帰路へ', returnTrip: '乗り換えに余裕を持って帰宅' },
-      rest: 'ホテル、駅ビル、百貨店、観光案内所。',
-      meals: 'ご当地麺、定食、ベーカリー、スイーツ。',
-      rainy: '駅ビル、商業施設、屋内ミュージアム中心に。',
-      caution: '混雑時間帯を避け、ベビーカー利用時はエレベーター動線を確認します。',
-      fit: '公共交通で移動し、食事と休憩のしやすさを重視する家族。'
-    }
-  ]
+  under20: '無料または低価格の公園、道の駅、公共施設を軸にし、食事は地元の定食や持ち込みも組み合わせます。',
+  under40: '移動費を抑えながら、ひとつだけ有料体験を入れると満足度を上げやすい予算感です。',
+  under60: '体験、食事、休憩をバランスよく入れやすく、子連れの無理を避けた設計に向いています。',
+  under80: '宿や食事の選択肢が広がるため、休みやすい和室や大浴場付きも狙えます。',
+  under100: '移動の快適さや個室食、屋内施設まで含めて余裕を持った計画にできます。',
+  '100to150': '宿の滞在時間を長めに取り、食事や体験を少し上質にしやすい予算です。',
+  '150to200': '移動短縮、温泉宿、屋内体験を組み合わせ、疲れにくさを優先できます。',
+  over200: '宿、食事、移動の快適性を優先し、予約を詰め込みすぎない計画が向いています。'
 };
 
 const suggestionModes = {
-  shorter: { label: 'もっと移動短め', priority: ['rainy', 'onsen', 'food'], note: '移動を短くするため、駅近・宿滞在・近場休憩を優先しました。' },
-  nature: { label: 'もっと自然多め', priority: ['nature', 'sea', 'animals'], note: '自然を感じる時間を増やし、公園や湖畔、海辺の散策を厚めにしました。' },
-  onsen: { label: 'もっと温泉重視', priority: ['onsen', 'food', 'rainy'], note: '宿で休む時間と温泉の入りやすさを優先しました。' },
-  rainy: { label: '雨の日向けにする', priority: ['rainy', 'food', 'onsen'], note: '雨でも崩れにくい屋内施設、駅近、宿滞在を優先しました。' }
+  shorter: {
+    label: 'もっと移動短め',
+    tone: '移動時間を短くして、近場と休憩の比率を増やしました。',
+    emphasis: ['駅近', '近場', '休憩', '短時間']
+  },
+  nature: {
+    label: 'もっと自然多め',
+    tone: '公園、海、山、川など外でのびのび過ごせる時間を増やしました。',
+    emphasis: ['自然', '公園', '海', '山', '川']
+  },
+  onsen: {
+    label: 'もっと温泉重視',
+    tone: '宿や温浴施設で休む時間を増やし、移動と観光を詰め込みすぎない形にしました。',
+    emphasis: ['温泉', '宿', '大浴場', '休憩']
+  },
+  rainy: {
+    label: '雨の日向けにする',
+    tone: '屋内施設、駅近、宿滞在を中心にして、天気に左右されにくい形にしました。',
+    emphasis: ['雨', '屋内', '水族館', '博物館', '駅近']
+  }
 };
+
+const planTemplates = [
+  {
+    label: '本命',
+    title: '近場で満足ファミリー定番プラン',
+    areaType: '出発地から行きやすい近郊エリア',
+    concept: '移動を抑えつつ、遊び・食事・休憩をバランスよく入れる',
+    fit: '小さな子ども連れや、初めての家族旅行でも調整しやすいです。',
+    tags: ['近場', '休憩', '公園', '屋内', '食事']
+  },
+  {
+    label: '別案',
+    title: '目的重視の体験たっぷりプラン',
+    areaType: '目的に合う観光・体験スポットの多いエリア',
+    concept: '入力した目的を中心に、思い出に残る体験をひとつ強めに入れる',
+    fit: 'やりたいことがはっきりしている家族に向いています。',
+    tags: ['体験', '自然', '温泉', '海鮮', '雨']
+  },
+  {
+    label: '別案',
+    title: '天気に強いゆったり滞在プラン',
+    areaType: '駅近または宿周辺で完結しやすいエリア',
+    concept: '屋内施設と休憩を多めにして、当日の天気や疲れに合わせやすくする',
+    fit: '年齢差がある子ども連れや、雨の日も安心したい家族に合います。',
+    tags: ['雨', '屋内', '宿', '駅近', '休憩']
+  }
+];
 
 let currentInput = null;
 let currentMode = null;
+let currentPlans = [];
+let selectedPlanId = null;
 
 setupCountSelect(adultCount, 1, 9, 2);
 setupCountSelect(childCount, 0, 9, 0);
@@ -292,14 +132,24 @@ form.addEventListener('submit', (event) => {
   event.preventDefault();
   currentInput = readForm();
   currentMode = null;
+  selectedPlanId = null;
   renderSuggestions();
 });
 
 result.addEventListener('click', (event) => {
-  const button = event.target.closest('[data-mode]');
-  if (!button || !currentInput) return;
-  currentMode = button.dataset.mode;
-  renderSuggestions();
+  const modeButton = event.target.closest('[data-mode]');
+  if (modeButton && currentInput) {
+    currentMode = modeButton.dataset.mode;
+    selectedPlanId = null;
+    renderSuggestions();
+    return;
+  }
+
+  const planButton = event.target.closest('[data-plan-id]');
+  if (planButton) {
+    selectedPlanId = planButton.dataset.planId;
+    renderSuggestions({ keepScroll: true });
+  }
 });
 
 function setupCountSelect(select, min, max, initial) {
@@ -350,7 +200,7 @@ function updateAgeFields() {
   if (count > maxVisibleAgeFields) {
     const note = document.createElement('p');
     note.className = 'field-note';
-    note.textContent = `${maxVisibleAgeFields}人目まで年齢を選択できます。残りは自由入力欄に補足してください。`;
+    note.textContent = `${maxVisibleAgeFields}人目まで年齢を選択できます。残りは目的欄に補足してください。`;
     ageInputs.append(note);
   }
 }
@@ -371,9 +221,11 @@ function readForm() {
   }
 
   return {
-    departure: data.departure,
-    purpose: data.purpose,
-    purposeNote: data.purposeNote.trim(),
+    departure: data.departure.trim(),
+    duration: data.duration,
+    transport: data.transport,
+    travelTime: data.travelTime,
+    purpose: data.purpose.trim(),
     adultTotal: getSelectedCount(adultCount, adultCustom),
     childTotal,
     childAges: ages,
@@ -381,76 +233,242 @@ function readForm() {
   };
 }
 
-function renderSuggestions() {
-  const plans = choosePlans(currentInput, currentMode);
-  const modeNote = currentMode ? suggestionModes[currentMode].note : '入力条件から、移動・休憩・天候変更のしやすさを見て3案を選びました。';
+function renderSuggestions(options = {}) {
+  currentPlans = buildPlans(currentInput, currentMode);
+  const modeNote = currentMode ? suggestionModes[currentMode].tone : '入力内容から、目的・日数・移動手段・希望移動時間を反映した候補を3つ作りました。';
+  const selectedPlan = currentPlans.find((plan) => plan.id === selectedPlanId);
 
   result.innerHTML = `
     <div class="result-toolbar">
       <div>
-        <span class="plan-area">相談メモ</span>
-        <h2>${escapeHtml(currentInput.departure)}発・大人${currentInput.adultTotal}人・子ども${currentInput.childTotal}人の旅行提案</h2>
+        <span class="plan-area">提案メモ</span>
+        <h2>${escapeHtml(currentInput.departure)}発・${durations[currentInput.duration].label}の候補プラン</h2>
         <p>${escapeHtml(modeNote)} ${escapeHtml(budgetAdvice[currentInput.budget])}</p>
       </div>
       <div class="mode-buttons" aria-label="再提案">
-        ${Object.entries(suggestionModes).map(([key, mode]) => `<button type="button" class="secondary-button${currentMode === key ? ' is-active' : ''}" data-mode="${key}">${mode.label}</button>`).join('')}
+        ${Object.entries(suggestionModes).map(([key, mode]) => `
+          <button type="button" class="secondary-button${currentMode === key ? ' is-active' : ''}" data-mode="${key}">
+            ${escapeHtml(mode.label)}
+          </button>
+        `).join('')}
       </div>
     </div>
-    ${currentInput.purposeNote ? `<p class="request-note">自由入力メモ：${escapeHtml(currentInput.purposeNote)}</p>` : ''}
-    <div class="plan-list">
-      ${plans.map((plan, index) => renderPlan(plan, index)).join('')}
+
+    <section class="summary-panel" aria-labelledby="summary-title">
+      <h3 id="summary-title">候補プラン一覧</h3>
+      <div class="plan-card-list">
+        ${currentPlans.map((plan) => renderPlanCard(plan)).join('')}
+      </div>
+    </section>
+
+    <div id="planDetail" class="detail-panel">
+      ${selectedPlan ? renderPlanDetail(selectedPlan) : '<p class="empty-detail">気になる候補をクリックすると、詳しい旅程を表示します。</p>'}
     </div>
   `;
+
   result.classList.remove('is-hidden');
-  result.scrollIntoView({ behavior: 'smooth', block: 'start' });
-}
-
-function choosePlans(input, mode) {
-  const pool = [...departurePlans[input.departure]];
-  const priority = mode ? suggestionModes[mode].priority : [input.purpose, 'rainy', 'onsen', 'food', 'nature', 'sea', 'animals'];
-
-  return pool
-    .map((plan, index) => ({
-      ...plan,
-      score: scorePlan(plan, input, priority) - index * 0.01
-    }))
-    .sort((a, b) => b.score - a.score)
-    .slice(0, 3);
-}
-
-function scorePlan(plan, input, priority) {
-  let score = 0;
-  if (plan.tags.includes(input.purpose)) score += 8;
-  priority.forEach((tag, index) => {
-    if (plan.tags.includes(tag)) score += 5 - index;
-  });
-  if (input.childTotal > 0 && plan.tags.includes('rainy')) score += 1;
-  if (input.budget === 'under20' || input.budget === 'under40') {
-    if (plan.tags.includes('nature') || plan.tags.includes('food')) score += 1;
+  if (!options.keepScroll) {
+    result.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
-  if (input.budget === '150to200' || input.budget === 'over200') {
-    if (plan.tags.includes('onsen')) score += 2;
+}
+
+function buildPlans(input, mode) {
+  const keywords = normalizeKeywords(input.purpose);
+  const templates = [...planTemplates].sort((a, b) => scoreTemplate(b, keywords, mode) - scoreTemplate(a, keywords, mode));
+
+  return templates.map((template, index) => {
+    const area = buildArea(input, template, index);
+    const transportNote = getTransportNote(input.transport);
+    const timeNote = getTravelTimeNote(input.travelTime);
+    const childNote = getChildNote(input);
+    const modeExtra = mode ? suggestionModes[mode].emphasis.join('・') : input.purpose;
+
+    return {
+      id: `plan-${index}`,
+      label: index === 0 ? '本命' : '別案',
+      name: customizeName(template.title, input, mode, index),
+      area,
+      concept: `${template.concept}。テーマは「${input.purpose}」です。`,
+      shortReason: `${travelTimes[input.travelTime]}と${transports[input.transport]}を前提に、${modeExtra}を無理なく入れやすい候補です。`,
+      reason: `${template.fit} ${transportNote} ${timeNote} ${childNote}`,
+      itinerary: buildItinerary(input, template, index),
+      meals: buildMeals(input.purpose, input.budget),
+      rest: buildRestPoints(input),
+      rainy: buildRainyPlan(input, mode),
+      caution: buildCaution(input),
+      fit: buildFamilyFit(input, template)
+    };
+  });
+}
+
+function scoreTemplate(template, keywords, mode) {
+  let score = 0;
+  keywords.forEach((keyword) => {
+    if (template.tags.some((tag) => keyword.includes(tag) || tag.includes(keyword))) score += 3;
+  });
+  if (mode) {
+    suggestionModes[mode].emphasis.forEach((word) => {
+      if (template.tags.includes(word)) score += 2;
+    });
   }
   return score;
 }
 
-function renderPlan(plan, index) {
-  const label = index === 0 ? '本命プラン' : `別案 ${index}`;
+function normalizeKeywords(text) {
+  return text
+    .split(/[、,\s]+/)
+    .map((keyword) => keyword.trim())
+    .filter(Boolean);
+}
+
+function customizeName(baseName, input, mode, index) {
+  if (mode === 'shorter') return index === 0 ? '移動短め・近場満足プラン' : baseName;
+  if (mode === 'nature') return index === 0 ? '自然多めの外遊びプラン' : baseName;
+  if (mode === 'onsen') return index === 0 ? '温泉ゆったり滞在プラン' : baseName;
+  if (mode === 'rainy') return index === 0 ? '雨の日でも安心プラン' : baseName;
+  if (/温泉/.test(input.purpose) && index === 1) return '温泉と食事を楽しむプラン';
+  if (/海|海鮮/.test(input.purpose) && index === 1) return '海辺と海鮮を楽しむプラン';
+  if (/自然|公園|山|川/.test(input.purpose) && index === 1) return '自然でのびのび遊ぶプラン';
+  return baseName;
+}
+
+function buildArea(input, template, index) {
+  const range = {
+    '30m': 'すぐ行ける近場',
+    '1h': '1時間圏内',
+    '2h': '半日で行きやすい近郊',
+    '3h': '少し足を伸ばせる周辺県',
+    '4h': '遠出感のあるエリア',
+    '4hplus': '遠方の人気エリア'
+  }[input.travelTime];
+  return `${input.departure}から${range}の${template.areaType}`;
+}
+
+function getTransportNote(transport) {
+  const notes = {
+    car: '車移動なので、道の駅、サービスエリア、駐車場のあるスポットを休憩軸にします。',
+    train: '電車移動なので、駅近スポット、荷物の少なさ、乗り換え負担の少なさを重視します。',
+    shinkansen: '新幹線移動なので、主要駅から近い宿や観光地を選び、乗り換えを減らします。',
+    flight: '飛行機移動なので、空港からの移動と初日の余裕を優先します。',
+    bus: 'バス移動なので、停留所から歩きやすい場所と待ち時間の少ない行程にします。',
+    'walk-bike': '徒歩・自転車移動なので、距離を絞り、休憩できる場所を細かく入れます。',
+    other: '移動手段に合わせて、乗り換えや待ち時間を詰め込みすぎない設計にします。'
+  };
+  return notes[transport];
+}
+
+function getTravelTimeNote(travelTime) {
+  if (travelTime === '30m' || travelTime === '1h') return '希望移動時間が短めなので、近場中心で滞在時間を長く取ります。';
+  if (travelTime === '4h' || travelTime === '4hplus') return '長めの移動も許容できるため、遠方候補も含めつつ初日を軽めにします。';
+  return '移動と観光のバランスを取り、子どもの疲れが出る前に休める流れにします。';
+}
+
+function getChildNote(input) {
+  if (input.childTotal < 1) return '大人だけでも休憩を挟み、食事と移動に余裕を持たせます。';
+  const ages = input.childAges.length ? `年齢は${input.childAges.join('、')}を想定します。` : '年齢未入力の子どもがいる想定です。';
+  return `子ども${input.childTotal}人、${ages} 昼寝、トイレ、屋内退避を入れやすくします。`;
+}
+
+function buildItinerary(input, template, index) {
+  const duration = durations[input.duration];
+  if (duration.days === 1) {
+    return [
+      { day: '日帰り', items: ['午前は移動と最初の目的地を短めに設定', `昼は${input.purpose}に寄せた食事候補へ`, '午後はメイン体験と休憩をセットにする', '夕方前に帰路へ向かい、疲れを残しにくくする'] }
+    ];
+  }
+
+  const plans = [
+    { day: '1日目', items: ['午前は余裕を持って出発', '昼は移動先で食べやすい店を選ぶ', `午後は${template.concept}流れでメイン体験へ`, '早めに宿または滞在拠点へ入る'] },
+    { day: '2日目', items: ['朝は宿周辺か駅近で軽く散策', '昼は地元名物や子ども向けメニューのある店へ', '午後は短時間の観光または屋内施設へ', '混雑前に帰路へ向かう'] }
+  ];
+
+  if (duration.days >= 3) {
+    plans.splice(1, 0, { day: '中日', items: ['移動を少なめにして、目的に合う体験を長めに確保', '昼寝やカフェ休憩を予定に組み込む', '夕方は宿の温泉や周辺散歩で整える'] });
+  }
+
+  if (duration.days >= 4) {
+    plans.splice(plans.length - 1, 0, { day: '追加日', items: ['遠方スポットや自然エリアを半日単位で追加', '天気が悪ければ屋内施設へ差し替え', '洗濯、荷物整理、早寝の時間を確保'] });
+  }
+
+  if (input.duration === 'longer') {
+    plans.splice(plans.length - 1, 0, { day: '長期滞在日', items: ['連泊拠点を作り、日ごとに近場を回る', '何もしない半日を作って疲れをリセット', '目的に合う体験を予約制と自由行動に分ける'] });
+  }
+
+  return plans;
+}
+
+function buildMeals(purpose, budget) {
+  const ideas = [];
+  if (/海|海鮮|魚|寿司/.test(purpose)) ideas.push('海鮮丼、回転寿司、浜焼きなど取り分けしやすい店');
+  if (/温泉/.test(purpose)) ideas.push('宿の会席、定食、温泉街の軽食');
+  if (/自然|公園|山|川/.test(purpose)) ideas.push('ベーカリー、道の駅、テイクアウト弁当');
+  if (!ideas.length) ideas.push('地元定食、うどん、カレー、フードコートなど子どもが選びやすい店');
+  if (budget === 'under20' || budget === 'under40') ideas.push('昼食をメインにして、夕食は軽めにすると調整しやすいです');
+  return ideas.join('。');
+}
+
+function buildRestPoints(input) {
+  const base = input.childTotal > 0 ? '授乳室、トイレ、ベンチ、屋内休憩所を事前に確認します。' : 'カフェや駅ビルなど、予定を立て直せる休憩場所を入れます。';
+  if (input.transport === 'car') return `${base} 車なら道の駅、サービスエリア、広めの駐車場を固定休憩にします。`;
+  if (input.transport === 'train' || input.transport === 'shinkansen') return `${base} 電車系なら駅近施設とコインロッカーを前提にします。`;
+  if (input.transport === 'flight') return `${base} 空港内で食事、トイレ、荷物整理の時間を長めに取ります。`;
+  return base;
+}
+
+function buildRainyPlan(input, mode) {
+  const core = '水族館、科学館、屋内遊び場、駅ビル、宿の温浴施設に差し替えます。';
+  if (mode === 'rainy') return `${core} 最初から屋内中心にして、屋外は晴れたら追加する扱いにします。`;
+  if (/雨/.test(input.purpose)) return `${core} 入力目的が雨の日寄りなので、屋外スポットは短時間にします。`;
+  return `${core} 予約が必要な施設は前日までに候補を2つ持っておくと安心です。`;
+}
+
+function buildCaution(input) {
+  const pieces = ['食事時間とチェックイン時刻を詰め込みすぎないこと。'];
+  if (input.transport === 'car') pieces.push('駐車場の満空、渋滞、チャイルドシート休憩を確認してください。');
+  if (input.transport === 'train' || input.transport === 'shinkansen') pieces.push('乗り換え回数、エレベーター位置、荷物量を確認してください。');
+  if (input.transport === 'flight') pieces.push('空港到着後の移動は初日に詰め込まず、遅延時の余白を残してください。');
+  if (input.travelTime === '4hplus') pieces.push('遠方候補は初日と最終日を軽くするのが安全です。');
+  return pieces.join(' ');
+}
+
+function buildFamilyFit(input, template) {
+  if (input.childTotal > 0) {
+    return `${input.childTotal}人の子ども連れで、${input.purpose}を楽しみたい家族。${template.fit}`;
+  }
+  return `${input.purpose}を大人中心に楽しみつつ、移動と食事に余裕を持ちたい家族。`;
+}
+
+function renderPlanCard(plan) {
+  const isSelected = plan.id === selectedPlanId;
   return `
-    <article class="trip-plan${index === 0 ? ' featured-plan' : ''}">
+    <button type="button" class="plan-summary-card${isSelected ? ' is-selected' : ''}" data-plan-id="${plan.id}" aria-pressed="${isSelected}">
+      <span class="plan-label">${escapeHtml(plan.label)}</span>
+      <span class="plan-card-title">${escapeHtml(plan.name)}</span>
+      <span class="plan-card-area">おすすめエリア：${escapeHtml(plan.area)}</span>
+      <span class="plan-card-concept">${escapeHtml(plan.concept)}</span>
+      <span class="plan-card-reason">${escapeHtml(plan.shortReason)}</span>
+    </button>
+  `;
+}
+
+function renderPlanDetail(plan) {
+  return `
+    <article class="trip-plan">
       <div class="plan-title-row">
-        <span class="plan-label">${label}</span>
+        <span class="plan-label">${escapeHtml(plan.label)}</span>
         <h3>${escapeHtml(plan.name)}</h3>
       </div>
       ${detail('おすすめエリア', plan.area)}
       ${detail('コンセプト', plan.concept)}
-      ${detail('おすすめ理由', appendPersonalReason(plan.reason))}
-      <div class="itinerary-grid">
-        ${dayBlock('1日目', plan.day1, ['morning', 'lunch', 'afternoon', 'lodging'], ['午前', '昼食', '午後', '宿・温泉'])}
-        ${dayBlock('2日目', plan.day2, ['morning', 'lunch', 'afternoon', 'returnTrip'], ['午前', '昼食', '午後', '帰路'])}
-      </div>
-      ${detail('子連れ休憩ポイント', plan.rest)}
+      ${detail('おすすめ理由', plan.reason)}
+      <section class="detail-row">
+        <h4>日数に応じた旅程</h4>
+        <div class="itinerary-grid">
+          ${plan.itinerary.map((day) => dayBlock(day.day, day.items)).join('')}
+        </div>
+      </section>
       ${detail('食事候補', plan.meals)}
+      ${detail('子連れ休憩ポイント', plan.rest)}
       ${detail('雨の日代替案', plan.rainy)}
       ${detail('注意点', plan.caution)}
       ${detail('このプランが向いている家族', plan.fit)}
@@ -458,19 +476,13 @@ function renderPlan(plan, index) {
   `;
 }
 
-function appendPersonalReason(reason) {
-  const ages = currentInput.childAges.length ? `子どもの年齢は${currentInput.childAges.join('、')}想定。` : '子どもなし、または年齢入力なしの想定。';
-  const note = currentInput.purposeNote ? `希望メモ「${currentInput.purposeNote}」も踏まえると、休憩を固定して予定を増やしすぎないのが合います。` : '休憩を固定して予定を増やしすぎないのが合います。';
-  return `${reason} ${ages}${note}`;
-}
-
-function dayBlock(title, items, keys, labels) {
+function dayBlock(title, items) {
   return `
     <section class="day-card">
-      <h4>${title}</h4>
-      <dl>
-        ${keys.map((key, index) => `<div><dt>${labels[index]}</dt><dd>${escapeHtml(items[key])}</dd></div>`).join('')}
-      </dl>
+      <h5>${escapeHtml(title)}</h5>
+      <ul>
+        ${items.map((item) => `<li>${escapeHtml(item)}</li>`).join('')}
+      </ul>
     </section>
   `;
 }
@@ -478,7 +490,7 @@ function dayBlock(title, items, keys, labels) {
 function detail(title, body) {
   return `
     <section class="detail-row">
-      <h4>${title}</h4>
+      <h4>${escapeHtml(title)}</h4>
       <p>${escapeHtml(body)}</p>
     </section>
   `;
