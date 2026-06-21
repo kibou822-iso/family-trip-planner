@@ -9,8 +9,9 @@ const childCustom = document.querySelector('#childCustom');
 const childAges = document.querySelector('#childAges');
 const ageInputs = document.querySelector('#ageInputs');
 
-const childAgeOptions = ['0歳', '1歳', '2歳', '3歳', '4歳', '5歳', '6歳', '7歳', '8歳', '9歳', '10歳', '11歳', '12歳', '13歳以上'];
+const childAgeOptions = Array.from({ length: 13 }, (_, index) => `${index}歳`).concat('13歳以上');
 const maxVisibleAgeFields = 12;
+const officialNotice = '営業時間、休館日、料金、予約可否は公式サイトで確認してください。';
 
 const durations = {
   daytrip: { label: '日帰り', days: 1, nights: 0 },
@@ -31,83 +32,609 @@ const transports = {
 };
 
 const travelTimes = {
-  '30m': '30分以内',
-  '1h': '1時間以内',
-  '2h': '2時間以内',
-  '3h': '3時間以内',
-  '4h': '4時間以内',
-  '4hplus': '4時間以上も可'
+  '30m': { label: '30分以内', minutes: 30 },
+  '1h': { label: '1時間以内', minutes: 60 },
+  '2h': { label: '2時間以内', minutes: 120 },
+  '3h': { label: '3時間以内', minutes: 180 },
+  '4h': { label: '4時間以内', minutes: 240 },
+  '4hplus': { label: '4時間以上も可', minutes: 999 }
 };
 
 const budgets = {
-  under20: '〜2万円',
-  under40: '〜4万円',
-  under60: '〜6万円',
-  under80: '〜8万円',
-  under100: '〜10万円',
+  under20: '2万円未満',
+  under40: '2〜4万円',
+  under60: '4〜6万円',
+  under80: '6〜8万円',
+  under100: '8〜10万円',
   '100to150': '10〜15万円',
   '150to200': '15〜20万円',
-  over200: 'それ以上'
+  over200: '20万円以上'
 };
 
 const budgetAdvice = {
-  under20: '無料または低価格の公園、道の駅、公共施設を軸にし、食事は地元の定食や持ち込みも組み合わせます。',
-  under40: '移動費を抑えながら、ひとつだけ有料体験を入れると満足度を上げやすい予算感です。',
-  under60: '体験、食事、休憩をバランスよく入れやすく、子連れの無理を避けた設計に向いています。',
-  under80: '宿や食事の選択肢が広がるため、休みやすい和室や大浴場付きも狙えます。',
-  under100: '移動の快適さや個室食、屋内施設まで含めて余裕を持った計画にできます。',
-  '100to150': '宿の滞在時間を長めに取り、食事や体験を少し上質にしやすい予算です。',
-  '150to200': '移動短縮、温泉宿、屋内体験を組み合わせ、疲れにくさを優先できます。',
-  over200: '宿、食事、移動の快適性を優先し、予約を詰め込みすぎない計画が向いています。'
+  under20: '低予算なので、日帰り、道の駅、公園、公共施設、短い移動を優先します。',
+  under40: '低予算寄りなので、入場料を抑えやすい公園や市場、フードコートを組み込みます。',
+  under60: '標準予算として、体験、食事、休憩のバランスを取りやすい候補を選びます。',
+  under80: '標準予算として、子連れ歓迎の宿や温泉、ゆったりした食事を入れやすい候補を選びます。',
+  under100: '宿と食事の選択肢を少し広げ、移動の負担が少ない旅程にします。',
+  '100to150': '宿重視、食事重視、温泉旅館寄りの候補を強めに評価します。',
+  '150to200': '料理重視の宿、貸切風呂、部屋食・個室食などを含めやすい候補を優先します。',
+  over200: '移動の快適さ、宿の滞在時間、食事内容まで余裕を持って組める候補を優先します。'
 };
 
 const suggestionModes = {
   shorter: {
-    label: 'もっと移動短め',
-    tone: '移動時間を短くして、近場と休憩の比率を増やしました。',
-    emphasis: ['駅近', '近場', '休憩', '短時間']
+    label: '近場で再提案',
+    tone: '移動時間を短めにし、休憩と立ち寄りやすさを重視して再提案しました。',
+    emphasis: ['近い', '休憩', '日帰り', '道の駅']
   },
   nature: {
-    label: 'もっと自然多め',
-    tone: '公園、海、山、川など外でのびのび過ごせる時間を増やしました。',
-    emphasis: ['自然', '公園', '海', '山', '川']
+    label: '自然多め',
+    tone: '公園、海、湖、高原、牧場など、外で過ごしやすい時間を増やしました。',
+    emphasis: ['自然', '公園', '海', '高原', '牧場']
   },
   onsen: {
-    label: 'もっと温泉重視',
-    tone: '宿や温浴施設で休む時間を増やし、移動と観光を詰め込みすぎない形にしました。',
-    emphasis: ['温泉', '宿', '大浴場', '休憩']
+    label: '温泉宿重視',
+    tone: '温泉、料理、宿で休む時間を厚めにした候補へ寄せました。',
+    emphasis: ['温泉', '高級旅館', '料理旅館', '宿重視', 'のんびり']
   },
   rainy: {
-    label: '雨の日向けにする',
-    tone: '屋内施設、駅近、宿滞在を中心にして、天気に左右されにくい形にしました。',
-    emphasis: ['雨', '屋内', '水族館', '博物館', '駅近']
+    label: '雨の日向け',
+    tone: '水族館、屋内施設、市場、宿滞在など、天気に左右されにくい候補を優先しました。',
+    emphasis: ['雨', '屋内', '水族館', '市場', '博物館']
   }
 };
 
-const planTemplates = [
+const purposeSignalWords = {
+  sea: ['海', '海辺', '海沿い', '海水浴', 'オーシャン', 'ビーチ'],
+  seafood: ['海鮮', '魚', '寿司', '鮨', 'カニ', '蟹', '地魚', '浜焼き', '市場'],
+  luxury: ['高級', '高級旅館', '料理旅館', '部屋食', '個室食', '宿重視', '贅沢'],
+  onsen: ['温泉', '露天', '貸切風呂', '家族風呂', 'のんびり', 'ゆっくり'],
+  nature: ['自然', '公園', '高原', '山', '川', '湖', '牧場', '散策'],
+  kids: ['子ども', '子供', 'こども', '遊べる', '動物', '乗り物', '体験', '水族館'],
+  rainy: ['雨', '屋内', '博物館', '水族館', '科学館']
+};
+
+const destinationCatalog = [
   {
-    label: '本命',
-    title: '近場で満足ファミリー定番プラン',
-    areaType: '出発地から行きやすい近郊エリア',
-    concept: '移動を抑えつつ、遊び・食事・休憩をバランスよく入れる',
-    fit: '小さな子ども連れや、初めての家族旅行でも調整しやすいです。',
-    tags: ['近場', '休憩', '公園', '屋内', '食事']
+    id: 'kyotango-taiza',
+    areaName: '京丹後・間人方面',
+    departureCategoryLabel: '関西・大阪・高槻・上牧・京都発',
+    departureCategories: ['kansai'],
+    estimatedMinutes: { kansai: 180, niigata: 520, generic: 210 },
+    durations: ['1night', '2nights', '3nights'],
+    transports: ['car', 'train'],
+    purposeKeywords: ['海', '海鮮', '温泉', '高級旅館', '料理旅館', '自然', 'カニ', '地魚', 'のんびり'],
+    childFriendlyPoints: ['道の駅で休憩しやすい', '海沿い散策を短時間に区切れる', '宿の滞在時間を長く取りやすい'],
+    rainyFriendly: true,
+    onsen: true,
+    nature: true,
+    seafood: true,
+    lodgeFocus: true,
+    spots: ['立岩周辺', '道の駅てんきてんき丹後', '丹後王国「食のみやこ」', '琴引浜周辺', '天橋立方面'],
+    meals: ['海鮮ランチ', 'カニ・地魚料理', '旅館の会席', '道の駅の軽食'],
+    lodging: {
+      high: ['海沿いの温泉旅館', '部屋食または個室食がある料理旅館', '貸切風呂や家族風呂がある宿'],
+      standard: ['温泉宿', '和洋室のある宿', '駐車場つき旅館'],
+      low: ['公共の宿', '日帰り温泉と近隣ホテルの組み合わせ']
+    },
+    rainyAlternatives: ['丹後王国「食のみやこ」の屋内休憩', '天橋立方面の屋内施設', '宿の温泉時間を長めにする'],
+    cautions: ['冬の日本海側は天候と道路状況に余裕を持つ', '海沿い散策は風が強い日を避ける'],
+    concept: '日本海の地魚と温泉旅館を軸に、海沿いをゆっくり味わう宿重視プラン。',
+    theme: 'sea-ryokan',
+    areaGroup: 'kansai-north-sea',
+    childFocus: ['preschool', 'school'],
+    budgetFit: ['standard', 'high']
   },
   {
-    label: '別案',
-    title: '目的重視の体験たっぷりプラン',
-    areaType: '目的に合う観光・体験スポットの多いエリア',
-    concept: '入力した目的を中心に、思い出に残る体験をひとつ強めに入れる',
-    fit: 'やりたいことがはっきりしている家族に向いています。',
-    tags: ['体験', '自然', '温泉', '海鮮', '雨']
+    id: 'awaji-sumoto',
+    areaName: '淡路島・洲本方面',
+    departureCategoryLabel: '関西・大阪・高槻・上牧・京都発',
+    departureCategories: ['kansai'],
+    estimatedMinutes: { kansai: 120, niigata: 560, generic: 150 },
+    durations: ['daytrip', '1night', '2nights'],
+    transports: ['car', 'bus'],
+    purposeKeywords: ['海', '自然', '公園', '牧場', '子どもが遊べる', '海鮮', '温泉', 'ドライブ'],
+    childFriendlyPoints: ['淡路サービスエリアで早めに休憩できる', '公園や牧場を短時間で回れる', 'フードコートや道の駅を使いやすい'],
+    rainyFriendly: true,
+    onsen: true,
+    nature: true,
+    seafood: true,
+    lodgeFocus: true,
+    spots: ['淡路サービスエリア', '国営明石海峡公園', '淡路島牧場', '道の駅あわじ', '洲本温泉'],
+    meals: ['しらす丼', '淡路牛', '玉ねぎ料理', '海鮮ランチ', 'サービスエリアのフードコート'],
+    lodging: {
+      high: ['洲本温泉の海沿い旅館', '部屋食または個室食がある温泉宿', 'オーシャンビューのホテル'],
+      standard: ['子連れ歓迎のホテル', '和洋室のある温泉宿', '駐車場つきホテル'],
+      low: ['日帰り温泉', '公共の宿', 'サービスエリアと公園中心の日帰り']
+    },
+    rainyAlternatives: ['屋内体験施設', '道の駅や産直市場', 'ホテル内の温泉やキッズスペース'],
+    cautions: ['連休は明石海峡大橋周辺が混みやすい', '屋外中心の日は暑さと風対策を用意する'],
+    concept: '移動しやすさと海、公園、牧場を組み合わせる子連れ向きプラン。',
+    theme: 'island-park',
+    areaGroup: 'kansai-island',
+    childFocus: ['toddler', 'preschool', 'school'],
+    budgetFit: ['low', 'standard', 'high']
   },
   {
-    label: '別案',
-    title: '天気に強いゆったり滞在プラン',
-    areaType: '駅近または宿周辺で完結しやすいエリア',
-    concept: '屋内施設と休憩を多めにして、当日の天気や疲れに合わせやすくする',
-    fit: '年齢差がある子ども連れや、雨の日も安心したい家族に合います。',
-    tags: ['雨', '屋内', '宿', '駅近', '休憩']
+    id: 'kinosaki-kasumi',
+    areaName: '城崎温泉・香住方面',
+    departureCategoryLabel: '関西・大阪・高槻・上牧・京都発',
+    departureCategories: ['kansai'],
+    estimatedMinutes: { kansai: 190, niigata: 500, generic: 230 },
+    durations: ['1night', '2nights', '3nights'],
+    transports: ['car', 'train'],
+    purposeKeywords: ['温泉', '海鮮', 'カニ', '地魚', '高級旅館', '水族館', 'のんびり'],
+    childFriendlyPoints: ['城崎マリンワールドを旅程に入れやすい', '温泉街散策を短く区切れる', '宿で休む時間を長めに取れる'],
+    rainyFriendly: true,
+    onsen: true,
+    nature: true,
+    seafood: true,
+    lodgeFocus: true,
+    spots: ['城崎温泉街', '城崎マリンワールド', '玄武洞公園', '香住海岸', '道の駅あまるべ'],
+    meals: ['カニ・地魚料理', '海鮮ランチ', '温泉旅館の会席', '駅前の食堂'],
+    lodging: {
+      high: ['城崎温泉の料理旅館', '個室食のある温泉宿', '貸切風呂つき旅館'],
+      standard: ['温泉宿', '和洋室のある旅館', '駅や温泉街に近い宿'],
+      low: ['素泊まり宿と外食', '公共の宿', '日帰り温泉を組み合わせた近隣ホテル']
+    },
+    rainyAlternatives: ['城崎マリンワールド中心にする', '温泉街の屋内休憩を多めにする', '宿のチェックインを早める'],
+    cautions: ['冬は道路状況と積雪情報を確認する', '温泉街はベビーカーより抱っこひもの方が動きやすい場所がある'],
+    concept: '温泉街、海鮮、屋内水族館を組み合わせる料理と宿の満足度重視プラン。',
+    theme: 'onsen-seafood',
+    areaGroup: 'kansai-north-sea',
+    childFocus: ['preschool', 'school'],
+    budgetFit: ['standard', 'high']
+  },
+  {
+    id: 'ise-shima-toba',
+    areaName: '伊勢志摩・鳥羽方面',
+    departureCategoryLabel: '関西・大阪・高槻・上牧・京都発',
+    departureCategories: ['kansai'],
+    estimatedMinutes: { kansai: 170, niigata: 560, generic: 210 },
+    durations: ['1night', '2nights', '3nights'],
+    transports: ['car', 'train'],
+    purposeKeywords: ['海', '海鮮', '水族館', '温泉', '高級旅館', 'おかげ横丁', '子どもが遊べる'],
+    childFriendlyPoints: ['鳥羽水族館や伊勢シーパラダイスで天気に左右されにくい', '食事処が多く昼食を調整しやすい', '短い散策と屋内施設を組み合わせやすい'],
+    rainyFriendly: true,
+    onsen: true,
+    nature: true,
+    seafood: true,
+    lodgeFocus: true,
+    spots: ['鳥羽水族館', '伊勢シーパラダイス', 'おかげ横丁', '志摩スペイン村', '賢島周辺'],
+    meals: ['伊勢うどん', 'てこね寿司', '鳥羽周辺の海鮮食堂', '子どもメニューがありそうな食堂'],
+    lodging: {
+      high: ['志摩の温泉宿', '海を望む料理旅館', '部屋食または個室食がある宿'],
+      standard: ['鳥羽・志摩の子連れ歓迎ホテル', '和洋室のある温泉宿', '駐車場つきホテル'],
+      low: ['ビジネスホテル', '公共の宿', '水族館中心の日帰り寄り旅程']
+    },
+    rainyAlternatives: ['鳥羽水族館を長めにする', '伊勢シーパラダイス中心にする', 'おかげ横丁の屋根つき店舗を短く回る'],
+    cautions: ['伊勢神宮周辺は混雑日を避けると子連れで歩きやすい', '水族館は昼食時間をずらすと動きやすい'],
+    concept: '水族館、海鮮、温泉宿を具体的に組める、雨の日にも強い海の旅。',
+    theme: 'aquarium-sea',
+    areaGroup: 'kansai-mie-sea',
+    childFocus: ['toddler', 'preschool', 'school'],
+    budgetFit: ['standard', 'high']
+  },
+  {
+    id: 'shirahama-nanki',
+    areaName: '白浜・南紀方面',
+    departureCategoryLabel: '関西・大阪・高槻・上牧・京都発',
+    departureCategories: ['kansai'],
+    estimatedMinutes: { kansai: 190, niigata: 600, generic: 230 },
+    durations: ['1night', '2nights', '3nights'],
+    transports: ['car', 'train'],
+    purposeKeywords: ['海', '温泉', '動物', '水族館', '海鮮', '子どもが遊べる', '自然'],
+    childFriendlyPoints: ['アドベンチャーワールドをメインにできる', '白良浜の散策を短時間にしやすい', '市場やホテルで休憩しやすい'],
+    rainyFriendly: true,
+    onsen: true,
+    nature: true,
+    seafood: true,
+    lodgeFocus: true,
+    spots: ['アドベンチャーワールド', '白良浜', 'とれとれ市場', '千畳敷', '円月島'],
+    meals: ['とれとれ市場の海鮮', '和歌山ラーメン', 'ホテルのビュッフェ', 'テイクアウトの軽食'],
+    lodging: {
+      high: ['白浜温泉の海沿い旅館', '露天風呂つき客室のある宿', '料理重視の温泉宿'],
+      standard: ['子連れ歓迎ホテル', '和洋室のある温泉宿', '駐車場つきホテル'],
+      low: ['ビジネスホテル', '日帰り温泉', '市場と公園中心の日帰り']
+    },
+    rainyAlternatives: ['アドベンチャーワールドの屋内展示を中心にする', 'とれとれ市場で昼食と買い物をまとめる', '宿の温泉時間を増やす'],
+    cautions: ['関西北部からは移動が長めになる', '夏の白良浜は混雑と暑さ対策が必要'],
+    concept: '動物、海、温泉をまとめて楽しめる、子どもの満足度が高い南紀プラン。',
+    theme: 'animal-sea',
+    areaGroup: 'kansai-wakayama-sea',
+    childFocus: ['toddler', 'preschool', 'school'],
+    budgetFit: ['standard', 'high']
+  },
+  {
+    id: 'nagahama-hikone-biwako',
+    areaName: '長浜・彦根・琵琶湖方面',
+    departureCategoryLabel: '関西・大阪・高槻・上牧・京都発',
+    departureCategories: ['kansai'],
+    estimatedMinutes: { kansai: 85, niigata: 430, generic: 120 },
+    durations: ['daytrip', '1night', '2nights'],
+    transports: ['car', 'train'],
+    purposeKeywords: ['自然', '湖', '散策', '城', '公園', '雨の日', '近場', '食事'],
+    childFriendlyPoints: ['移動が短く昼寝時間を守りやすい', '黒壁スクエアや琵琶湖沿いを短く散策できる', '博物館や屋内施設に切り替えやすい'],
+    rainyFriendly: true,
+    onsen: false,
+    nature: true,
+    seafood: false,
+    lodgeFocus: false,
+    spots: ['黒壁スクエア', '彦根城周辺', '琵琶湖沿い', '道の駅湖北みずどりステーション', '長浜鉄道スクエア'],
+    meals: ['近江牛', '湖魚料理', '黒壁周辺のカフェ', 'ベーカリーやテイクアウト'],
+    lodging: {
+      high: ['琵琶湖を望むホテル', '個室食のある宿', 'ゆったりした和洋室の宿'],
+      standard: ['子連れ歓迎ホテル', '駐車場つきホテル', '駅近ホテル'],
+      low: ['ビジネスホテル', '公共の宿', '日帰り中心の道の駅・公園旅程']
+    },
+    rainyAlternatives: ['長浜鉄道スクエア', '博物館や屋内施設', '黒壁周辺のカフェ休憩'],
+    cautions: ['彦根城周辺は坂や砂利道がある', '湖岸は風が強い日がある'],
+    concept: '移動短めで、湖、城下町、カフェ、博物館を組み合わせる近場プラン。',
+    theme: 'lake-town',
+    areaGroup: 'kansai-lake',
+    childFocus: ['toddler', 'preschool', 'school'],
+    budgetFit: ['low', 'standard']
+  },
+  {
+    id: 'nara-yoshino-soni',
+    areaName: '奈良・吉野・曽爾高原方面',
+    departureCategoryLabel: '関西・大阪・高槻・上牧・京都発',
+    departureCategories: ['kansai'],
+    estimatedMinutes: { kansai: 110, niigata: 540, generic: 150 },
+    durations: ['daytrip', '1night', '2nights'],
+    transports: ['car', 'train'],
+    purposeKeywords: ['自然', '高原', '公園', '山', '温泉', '子どもが遊べる', '散策'],
+    childFriendlyPoints: ['高原や公園で体を動かしやすい', '道の駅で休憩を挟める', '短時間の自然散策にしやすい'],
+    rainyFriendly: false,
+    onsen: true,
+    nature: true,
+    seafood: false,
+    lodgeFocus: false,
+    spots: ['曽爾高原', '曽爾高原ファームガーデン', '吉野山周辺', '道の駅宇陀路大宇陀', '奈良公園'],
+    meals: ['柿の葉寿司', '三輪そうめん', '道の駅の定食', 'ベーカリーやテイクアウト'],
+    lodging: {
+      high: ['自然に近い温泉宿', '一棟貸しや広めの和洋室', '料理重視の里山宿'],
+      standard: ['温泉宿', '公共の宿', '駐車場つき宿'],
+      low: ['日帰り温泉', '道の駅と公園中心の日帰り', '公共の宿']
+    },
+    rainyAlternatives: ['奈良市内の博物館に切り替える', '道の駅と温泉中心にする', '宿で休む時間を増やす'],
+    cautions: ['高原は天候と気温差に注意する', 'ベビーカーより歩きやすい靴が向く場所が多い'],
+    concept: '高原、里山、温泉を短めの移動で楽しむ自然重視プラン。',
+    theme: 'highland-nature',
+    areaGroup: 'kansai-nara-nature',
+    childFocus: ['preschool', 'school'],
+    budgetFit: ['low', 'standard']
+  },
+  {
+    id: 'arima-kobe',
+    areaName: '有馬温泉・神戸方面',
+    departureCategoryLabel: '関西・大阪・高槻・上牧・京都発',
+    departureCategories: ['kansai'],
+    estimatedMinutes: { kansai: 70, niigata: 520, generic: 120 },
+    durations: ['daytrip', '1night', '2nights'],
+    transports: ['car', 'train', 'bus'],
+    purposeKeywords: ['温泉', '高級旅館', '近場', '動物', '神戸', '雨の日', 'のんびり'],
+    childFriendlyPoints: ['移動が短く昼寝を崩しにくい', '神戸どうぶつ王国や屋内施設に切り替えやすい', '温泉宿で早めに休める'],
+    rainyFriendly: true,
+    onsen: true,
+    nature: true,
+    seafood: false,
+    lodgeFocus: true,
+    spots: ['有馬温泉街', '六甲山牧場', '神戸どうぶつ王国', '神戸ハーバーランド', '有馬玩具博物館'],
+    meals: ['神戸牛ランチ', '温泉街の軽食', 'ベーカリー', 'ホテルのビュッフェ'],
+    lodging: {
+      high: ['有馬温泉の高級旅館', '部屋食または個室食のある宿', '貸切風呂や家族風呂がある宿'],
+      standard: ['温泉宿', '子連れ歓迎ホテル', '和洋室のある宿'],
+      low: ['日帰り温泉', '神戸市内のホテル', '公共交通での日帰り']
+    },
+    rainyAlternatives: ['神戸どうぶつ王国', '有馬玩具博物館', 'ハーバーランドの屋内施設'],
+    cautions: ['有馬温泉街は坂が多い', '人気宿は早めの予約確認が必要'],
+    concept: '近場の温泉宿と神戸の屋内スポットを組み合わせる休みやすいプラン。',
+    theme: 'near-onsen',
+    areaGroup: 'kansai-kobe',
+    childFocus: ['toddler', 'preschool', 'school'],
+    budgetFit: ['standard', 'high']
+  },
+  {
+    id: 'tanba-sasayama',
+    areaName: '丹波篠山方面',
+    departureCategoryLabel: '関西・大阪・高槻・上牧・京都発',
+    departureCategories: ['kansai'],
+    estimatedMinutes: { kansai: 75, niigata: 510, generic: 120 },
+    durations: ['daytrip', '1night'],
+    transports: ['car', 'train'],
+    purposeKeywords: ['自然', '里山', '食事', 'カフェ', '近場', '公園', '体験'],
+    childFriendlyPoints: ['里山の公園や道の駅を使いやすい', '移動が短く小さい子でも疲れにくい', 'カフェやテイクアウトで食事調整しやすい'],
+    rainyFriendly: true,
+    onsen: true,
+    nature: true,
+    seafood: false,
+    lodgeFocus: false,
+    spots: ['篠山城下町', '丹波並木道中央公園', '道の駅 丹波おばあちゃんの里', 'こんだ薬師温泉', '黒豆スイーツ店'],
+    meals: ['黒豆料理', '丹波栗スイーツ', '里山カフェ', '道の駅の定食'],
+    lodging: {
+      high: ['古民家宿', '料理重視の小さな宿', '家族風呂のある宿'],
+      standard: ['公共の宿', '駐車場つきホテル', '温泉つき宿'],
+      low: ['日帰り温泉', '道の駅と公園中心の日帰り', 'ビジネスホテル']
+    },
+    rainyAlternatives: ['城下町の屋内店舗', 'カフェ休憩', 'こんだ薬師温泉'],
+    cautions: ['城下町散策は店の定休日に注意する', '秋の味覚シーズンは混みやすい'],
+    concept: '里山、公園、カフェ、温泉を短い移動で楽しむ低負担プラン。',
+    theme: 'satoyama-food',
+    areaGroup: 'kansai-tanba',
+    childFocus: ['toddler', 'preschool'],
+    budgetFit: ['low', 'standard']
+  },
+  {
+    id: 'wakayama-marina-city',
+    areaName: '和歌山マリーナシティ周辺',
+    departureCategoryLabel: '関西・大阪・高槻・上牧・京都発',
+    departureCategories: ['kansai'],
+    estimatedMinutes: { kansai: 100, niigata: 570, generic: 140 },
+    durations: ['daytrip', '1night', '2nights'],
+    transports: ['car', 'train'],
+    purposeKeywords: ['海', '海鮮', '市場', '遊園地', '子どもが遊べる', '雨の日', '近場'],
+    childFriendlyPoints: ['黒潮市場とポルトヨーロッパを近くで組める', 'フードコートやテイクアウトが使いやすい', '日帰りでも宿泊でも調整しやすい'],
+    rainyFriendly: true,
+    onsen: true,
+    nature: true,
+    seafood: true,
+    lodgeFocus: false,
+    spots: ['ポルトヨーロッパ', '黒潮市場', '紀三井寺周辺', '片男波公園', '和歌山城'],
+    meals: ['黒潮市場の海鮮', '和歌山ラーメン', 'フードコート', 'テイクアウトの軽食'],
+    lodging: {
+      high: ['海沿いホテル', '温泉つきリゾートホテル', '広めの和洋室がある宿'],
+      standard: ['子連れ歓迎ホテル', '駐車場つきホテル', '温泉つき宿'],
+      low: ['日帰り温泉', 'ビジネスホテル', '市場と公園中心の日帰り']
+    },
+    rainyAlternatives: ['黒潮市場中心にする', 'ホテルや温泉で休憩する', '和歌山市内の屋内施設へ切り替える'],
+    cautions: ['遊園地利用日は天候で滞在時間が変わる', '市場の混雑時間をずらすと子連れで動きやすい'],
+    concept: '市場、海、遊園地を近い範囲でまとめる、短め移動の海プラン。',
+    theme: 'market-sea',
+    areaGroup: 'kansai-wakayama-sea',
+    childFocus: ['toddler', 'preschool', 'school'],
+    budgetFit: ['low', 'standard']
+  },
+  {
+    id: 'tsukioka-shibata',
+    areaName: '月岡温泉・新発田方面',
+    departureCategoryLabel: '新潟発',
+    departureCategories: ['niigata'],
+    estimatedMinutes: { kansai: 520, niigata: 45, generic: 120 },
+    durations: ['daytrip', '1night', '2nights'],
+    transports: ['car', 'train'],
+    purposeKeywords: ['温泉', '高級旅館', 'のんびり', '公園', '食事', '雨の日'],
+    childFriendlyPoints: ['移動が短く小さい子でも疲れにくい', '月岡わくわくファームで短時間休憩できる', '宿で早めに休める'],
+    rainyFriendly: true,
+    onsen: true,
+    nature: true,
+    seafood: false,
+    lodgeFocus: true,
+    spots: ['月岡温泉街', '月岡わくわくファーム', '新発田城址公園', '瓢湖', '道の駅加治川'],
+    meals: ['新潟の寿司', 'へぎそば', '温泉旅館の会席', '笹団子などの甘味'],
+    lodging: {
+      high: ['月岡温泉の高級旅館', '部屋食または個室食のある宿', '貸切風呂や家族風呂がある宿'],
+      standard: ['温泉宿', '和洋室のある宿', '駐車場つきホテル'],
+      low: ['日帰り温泉', '新発田周辺のホテル', '公共の宿']
+    },
+    rainyAlternatives: ['月岡温泉街の屋内店舗', '宿の温泉時間を長めにする', '道の駅や産直で休憩'],
+    cautions: ['温泉街散策は店の営業時間を確認する', '冬は道路状況に余裕を持つ'],
+    concept: '新潟市周辺から近く、温泉宿で休む時間をたっぷり取れるプラン。',
+    theme: 'near-onsen',
+    areaGroup: 'niigata-onsen',
+    childFocus: ['toddler', 'preschool'],
+    budgetFit: ['standard', 'high']
+  },
+  {
+    id: 'yahiko-teradomari',
+    areaName: '弥彦・寺泊方面',
+    departureCategoryLabel: '新潟発',
+    departureCategories: ['niigata'],
+    estimatedMinutes: { kansai: 520, niigata: 70, generic: 130 },
+    durations: ['daytrip', '1night', '2nights'],
+    transports: ['car', 'train'],
+    purposeKeywords: ['海', '海鮮', '市場', '神社', '自然', 'ロープウェイ', '子どもが遊べる'],
+    childFriendlyPoints: ['寺泊魚の市場通りで食事を決めやすい', '道の駅国上で休憩できる', '弥彦公園で短い散策ができる'],
+    rainyFriendly: true,
+    onsen: true,
+    nature: true,
+    seafood: true,
+    lodgeFocus: false,
+    spots: ['弥彦神社', '弥彦公園', '寺泊魚の市場通り', '弥彦山ロープウェイ', '道の駅国上'],
+    meals: ['寺泊の海鮮', '寿司', '浜焼き', '道の駅の軽食'],
+    lodging: {
+      high: ['弥彦温泉の料理宿', '個室食のある温泉宿', '家族風呂のある宿'],
+      standard: ['温泉宿', '和洋室のある宿', '駐車場つきホテル'],
+      low: ['日帰り温泉', '道の駅と市場中心の日帰り', '近隣のビジネスホテル']
+    },
+    rainyAlternatives: ['寺泊魚の市場通り中心にする', '道の駅国上で休憩を増やす', '温泉立ち寄りに切り替える'],
+    cautions: ['市場は昼時に混みやすい', 'ロープウェイは天候に左右される'],
+    concept: '寺泊の海鮮と弥彦の自然・温泉を短め移動で組める新潟近場プラン。',
+    theme: 'market-sea',
+    areaGroup: 'niigata-coast',
+    childFocus: ['preschool', 'school'],
+    budgetFit: ['low', 'standard']
+  },
+  {
+    id: 'nagaoka-echigo-park',
+    areaName: '長岡・国営越後丘陵公園方面',
+    departureCategoryLabel: '新潟発',
+    departureCategories: ['niigata'],
+    estimatedMinutes: { kansai: 500, niigata: 75, generic: 130 },
+    durations: ['daytrip', '1night', '2nights'],
+    transports: ['car', 'train'],
+    purposeKeywords: ['自然', '公園', '子どもが遊べる', '屋内', '学び', '近場'],
+    childFriendlyPoints: ['国営越後丘陵公園で年齢に合わせて遊べる', '道の駅ながおか花火館で屋内休憩できる', '移動時間が短く日帰りにしやすい'],
+    rainyFriendly: true,
+    onsen: false,
+    nature: true,
+    seafood: false,
+    lodgeFocus: false,
+    spots: ['国営越後丘陵公園', '道の駅ながおか花火館', '長岡花火ミュージアム', '寺泊方面への寄り道', '悠久山公園'],
+    meals: ['へぎそば', '長岡生姜醤油ラーメン', '道の駅のフードコート', 'ベーカリーやテイクアウト'],
+    lodging: {
+      high: ['広めの客室があるホテル', '温泉つき近隣宿', '食事つきのゆったり宿'],
+      standard: ['駐車場つきホテル', '子連れ歓迎ホテル', '駅近ホテル'],
+      low: ['日帰り中心', 'ビジネスホテル', '公共施設と公園中心の旅程']
+    },
+    rainyAlternatives: ['道の駅ながおか花火館', '長岡花火ミュージアム', '屋内遊び場への切り替え'],
+    cautions: ['公園は季節と天候で遊べる範囲が変わる', '夏は熱中症対策をする'],
+    concept: '大きな公園と屋内休憩を組み合わせる、子どもが遊びやすい新潟近場プラン。',
+    theme: 'big-park',
+    areaGroup: 'niigata-park',
+    childFocus: ['toddler', 'preschool', 'school'],
+    budgetFit: ['low', 'standard']
+  },
+  {
+    id: 'joetsu-myoko',
+    areaName: '上越・妙高方面',
+    departureCategoryLabel: '新潟発',
+    departureCategories: ['niigata'],
+    estimatedMinutes: { kansai: 460, niigata: 130, generic: 180 },
+    durations: ['1night', '2nights', '3nights'],
+    transports: ['car', 'train', 'shinkansen'],
+    purposeKeywords: ['自然', '高原', '水族館', '温泉', 'アクティビティ', '子どもが遊べる'],
+    childFriendlyPoints: ['上越市立水族博物館うみがたりで雨でも過ごせる', '妙高高原で自然遊びができる', '温泉宿で休憩を取りやすい'],
+    rainyFriendly: true,
+    onsen: true,
+    nature: true,
+    seafood: true,
+    lodgeFocus: true,
+    spots: ['妙高高原', '上越市立水族博物館うみがたり', '高田城址公園', '赤倉温泉', '道の駅あらい'],
+    meals: ['妙高のそば', '上越の海鮮', '道の駅あらいの食事', 'ホテルのビュッフェ'],
+    lodging: {
+      high: ['赤倉温泉のリゾート宿', '貸切風呂のある温泉宿', '料理重視の高原ホテル'],
+      standard: ['温泉宿', '子連れ歓迎ホテル', '和洋室のある宿'],
+      low: ['道の駅と公園中心', 'ビジネスホテル', '日帰り温泉']
+    },
+    rainyAlternatives: ['上越市立水族博物館うみがたり', '道の駅あらい', '宿の温泉時間を増やす'],
+    cautions: ['冬は雪道運転に注意する', '高原エリアは朝夕の気温差が大きい'],
+    concept: '高原、水族館、温泉を組み合わせる、自然遊びと雨の日対応を両立するプラン。',
+    theme: 'highland-aquarium',
+    areaGroup: 'niigata-myoko',
+    childFocus: ['preschool', 'school'],
+    budgetFit: ['standard', 'high']
+  },
+  {
+    id: 'senami-murakami',
+    areaName: '瀬波温泉・村上方面',
+    departureCategoryLabel: '新潟発',
+    departureCategories: ['niigata'],
+    estimatedMinutes: { kansai: 560, niigata: 85, generic: 150 },
+    durations: ['1night', '2nights'],
+    transports: ['car', 'train'],
+    purposeKeywords: ['海', '温泉', '海鮮', '高級旅館', '村上', 'のんびり', '雨の日'],
+    childFriendlyPoints: ['海沿いの宿で移動を減らしやすい', '町屋通りを短時間散策にできる', 'イヨボヤ会館で屋内時間を作れる'],
+    rainyFriendly: true,
+    onsen: true,
+    nature: true,
+    seafood: true,
+    lodgeFocus: true,
+    spots: ['瀬波温泉海岸', '村上町屋通り', 'イヨボヤ会館', '笹川流れ', '道の駅神林'],
+    meals: ['村上牛', '鮭料理', '海鮮ランチ', '温泉旅館の会席'],
+    lodging: {
+      high: ['瀬波温泉の海沿い旅館', '部屋食または個室食のある宿', '夕日が見える温泉宿'],
+      standard: ['温泉宿', '和洋室のある宿', '駐車場つきホテル'],
+      low: ['日帰り温泉', '村上周辺のホテル', '道の駅と町歩き中心']
+    },
+    rainyAlternatives: ['イヨボヤ会館', '村上町屋通りの屋内店舗', '宿の温泉時間を長めにする'],
+    cautions: ['海沿いは風が強い日がある', '笹川流れ方面は移動時間に余裕を持つ'],
+    concept: '夕日の海、温泉旅館、村上の食をゆっくり楽しむ宿重視プラン。',
+    theme: 'sea-ryokan',
+    areaGroup: 'niigata-coast',
+    childFocus: ['toddler', 'preschool', 'school'],
+    budgetFit: ['standard', 'high']
+  },
+  {
+    id: 'uonuma-yuzawa',
+    areaName: '魚沼・湯沢方面',
+    departureCategoryLabel: '新潟発',
+    departureCategories: ['niigata'],
+    estimatedMinutes: { kansai: 470, niigata: 120, generic: 170 },
+    durations: ['1night', '2nights', '3nights'],
+    transports: ['car', 'train', 'shinkansen'],
+    purposeKeywords: ['温泉', '自然', '高原', '体験', '雪遊び', 'のんびり', '宿'],
+    childFriendlyPoints: ['湯沢高原や道の駅で休憩しやすい', '年齢に合わせて自然遊びや雪遊びを選べる', '駅近ホテルを使いやすい'],
+    rainyFriendly: true,
+    onsen: true,
+    nature: true,
+    seafood: false,
+    lodgeFocus: true,
+    spots: ['越後湯沢温泉街', '湯沢高原', '魚沼の里', '清津峡', '道の駅南魚沼'],
+    meals: ['へぎそば', '魚沼産コシヒカリの定食', '駅ナカの食事', '笹団子'],
+    lodging: {
+      high: ['越後湯沢の温泉旅館', '貸切風呂のある宿', '食事重視の高原ホテル'],
+      standard: ['駅近温泉宿', '子連れ歓迎ホテル', '和洋室のある宿'],
+      low: ['ビジネスホテル', '日帰り温泉', '道の駅中心の日帰り寄り旅程']
+    },
+    rainyAlternatives: ['魚沼の里', '駅ナカ施設', '宿の温泉や屋内遊び場'],
+    cautions: ['冬は雪道と装備を確認する', '清津峡など人気スポットは混雑に注意する'],
+    concept: '温泉、米どころの食事、自然体験を組み合わせる山側の滞在プラン。',
+    theme: 'mountain-onsen',
+    areaGroup: 'niigata-mountain',
+    childFocus: ['preschool', 'school'],
+    budgetFit: ['standard', 'high']
+  },
+  {
+    id: 'sado',
+    areaName: '佐渡方面',
+    departureCategoryLabel: '新潟発',
+    departureCategories: ['niigata'],
+    estimatedMinutes: { kansai: 620, niigata: 240, generic: 260 },
+    durations: ['2nights', '3nights', 'longer'],
+    transports: ['car', 'train', 'bus'],
+    purposeKeywords: ['海', '自然', '体験', '学び', '海鮮', '船', 'ゆっくり'],
+    childFriendlyPoints: ['船移動を旅のイベントにできる', '自然体験や学びの要素が多い', '2泊以上で余裕を持ちやすい'],
+    rainyFriendly: true,
+    onsen: false,
+    nature: true,
+    seafood: true,
+    lodgeFocus: false,
+    spots: ['佐渡汽船', 'トキの森公園', '佐渡金山', '尖閣湾', 'たらい舟体験'],
+    meals: ['佐渡の海鮮', '寿司', '地魚定食', 'テイクアウトの軽食'],
+    lodging: {
+      high: ['海沿いの料理宿', '広めの和洋室がある宿', '食事重視の旅館'],
+      standard: ['島内ホテル', '民宿', '駐車場つき宿'],
+      low: ['民宿', '公共の宿', '食堂と観光中心の滞在']
+    },
+    rainyAlternatives: ['佐渡金山', 'トキの森公園', '屋内展示施設'],
+    cautions: ['フェリー時刻に旅程が左右される', '2泊以上で組むと子連れの負担が少ない'],
+    concept: '船、海、自然、学びをセットで楽しむ、2泊以上向きの島旅プラン。',
+    theme: 'island-learning',
+    areaGroup: 'niigata-island',
+    childFocus: ['school'],
+    budgetFit: ['standard', 'high']
+  },
+  {
+    id: 'niigata-city-coast',
+    areaName: '新潟市内・水族館・海沿いエリア',
+    departureCategoryLabel: '新潟発',
+    departureCategories: ['niigata'],
+    estimatedMinutes: { kansai: 520, niigata: 30, generic: 90 },
+    durations: ['daytrip', '1night'],
+    transports: ['car', 'train', 'bus'],
+    purposeKeywords: ['水族館', '海', '雨の日', '近場', '子どもが遊べる', '食事', '市場'],
+    childFriendlyPoints: ['移動が短く0〜2歳でも調整しやすい', 'マリンピア日本海で屋内時間を作れる', 'フードコートやテイクアウトを使いやすい'],
+    rainyFriendly: true,
+    onsen: false,
+    nature: true,
+    seafood: true,
+    lodgeFocus: false,
+    spots: ['マリンピア日本海', '新潟ふるさと村', 'ピアBandai', 'やすらぎ堤', '万代シテイ'],
+    meals: ['寿司', '海鮮', 'へぎそば', '笹団子', 'フードコート'],
+    lodging: {
+      high: ['市内の上質ホテル', '広めの客室があるホテル', '朝食重視のホテル'],
+      standard: ['子連れ歓迎ホテル', '駅近ホテル', '駐車場つきホテル'],
+      low: ['日帰り中心', 'ビジネスホテル', '公共施設と水族館中心']
+    },
+    rainyAlternatives: ['マリンピア日本海', '新潟ふるさと村', '万代シテイの屋内施設'],
+    cautions: ['市街地は駐車場の場所を先に決めると動きやすい', '地酒は大人向けの楽しみとして扱う'],
+    concept: '水族館、市場、海沿い散策を短い移動でまとめる新潟市内プラン。',
+    theme: 'city-aquarium',
+    areaGroup: 'niigata-city',
+    childFocus: ['toddler', 'preschool', 'school'],
+    budgetFit: ['low', 'standard']
   }
 ];
 
@@ -235,14 +762,18 @@ function readForm() {
 
 function renderSuggestions(options = {}) {
   currentPlans = buildPlans(currentInput, currentMode);
-  const modeNote = currentMode ? suggestionModes[currentMode].tone : '入力内容から、目的・日数・移動手段・希望移動時間を反映した候補を3つ作りました。';
+  if (!selectedPlanId || !currentPlans.some((plan) => plan.id === selectedPlanId)) {
+    selectedPlanId = currentPlans.length ? currentPlans[0].id : null;
+  }
+
   const selectedPlan = currentPlans.find((plan) => plan.id === selectedPlanId);
+  const modeNote = currentMode ? suggestionModes[currentMode].tone : '入力条件に合わせて、具体的な地名・スポット・食事・宿タイプが違う3候補を作りました。';
 
   result.innerHTML = `
     <div class="result-toolbar">
       <div>
         <span class="plan-area">提案メモ</span>
-        <h2>${escapeHtml(currentInput.departure)}発・${durations[currentInput.duration].label}の候補プラン</h2>
+        <h2>${escapeHtml(currentInput.departure)}発・${escapeHtml(durations[currentInput.duration].label)}の候補プラン</h2>
         <p>${escapeHtml(modeNote)} ${escapeHtml(budgetAdvice[currentInput.budget])}</p>
       </div>
       <div class="mode-buttons" aria-label="再提案">
@@ -262,7 +793,7 @@ function renderSuggestions(options = {}) {
     </section>
 
     <div id="planDetail" class="detail-panel">
-      ${selectedPlan ? renderPlanDetail(selectedPlan) : '<p class="empty-detail">気になる候補をクリックすると、詳しい旅程を表示します。</p>'}
+      ${selectedPlan ? renderPlanDetail(selectedPlan) : '<p class="empty-detail">条件に合う候補を作れませんでした。目的や移動時間を少し広げてください。</p>'}
     </div>
   `;
 
@@ -273,169 +804,383 @@ function renderSuggestions(options = {}) {
 }
 
 function buildPlans(input, mode) {
-  const keywords = normalizeKeywords(input.purpose);
-  const templates = [...planTemplates].sort((a, b) => scoreTemplate(b, keywords, mode) - scoreTemplate(a, keywords, mode));
+  const scored = destinationCatalog
+    .map((destination) => scoreDestination(destination, input, mode))
+    .sort((a, b) => b.score - a.score);
 
-  return templates.map((template, index) => {
-    const area = buildArea(input, template, index);
-    const transportNote = getTransportNote(input.transport);
-    const timeNote = getTravelTimeNote(input.travelTime);
-    const childNote = getChildNote(input);
-    const modeExtra = mode ? suggestionModes[mode].emphasis.join('・') : input.purpose;
-
-    return {
-      id: `plan-${index}`,
-      label: index === 0 ? '本命' : '別案',
-      name: customizeName(template.title, input, mode, index),
-      area,
-      concept: `${template.concept}。テーマは「${input.purpose}」です。`,
-      shortReason: `${travelTimes[input.travelTime]}と${transports[input.transport]}を前提に、${modeExtra}を無理なく入れやすい候補です。`,
-      reason: `${template.fit} ${transportNote} ${timeNote} ${childNote}`,
-      itinerary: buildItinerary(input, template, index),
-      meals: buildMeals(input.purpose, input.budget),
-      rest: buildRestPoints(input),
-      rainy: buildRainyPlan(input, mode),
-      caution: buildCaution(input),
-      fit: buildFamilyFit(input, template)
-    };
-  });
+  return selectDistinctDestinations(scored, 3).map((entry, index) => createPlan(entry, input, index));
 }
 
-function scoreTemplate(template, keywords, mode) {
+function scoreDestination(destination, input, mode) {
+  const originCategory = getOriginCategory(input.departure);
+  const signals = analyzePurpose(input.purpose);
+  const budgetLevel = getBudgetLevel(input.budget);
+  const childProfile = getChildProfile(input);
+  const estimatedMinutes = getEstimatedMinutes(destination, originCategory);
+  const maxMinutes = travelTimes[input.travelTime].minutes;
   let score = 0;
-  keywords.forEach((keyword) => {
-    if (template.tags.some((tag) => keyword.includes(tag) || tag.includes(keyword))) score += 3;
-  });
-  if (mode) {
-    suggestionModes[mode].emphasis.forEach((word) => {
-      if (template.tags.includes(word)) score += 2;
-    });
+
+  if (destination.departureCategories.includes(originCategory)) {
+    score += 45;
+  } else if (originCategory === 'generic') {
+    score += 12;
+  } else {
+    score -= 30;
+  }
+
+  if (maxMinutes >= 999) {
+    score += estimatedMinutes <= 300 ? 14 : -4;
+  } else if (estimatedMinutes <= maxMinutes) {
+    score += 28 + Math.max(0, (maxMinutes - estimatedMinutes) / 20);
+  } else if (estimatedMinutes <= maxMinutes + 45) {
+    score += 8 - (estimatedMinutes - maxMinutes) / 15;
+  } else {
+    score -= Math.min(40, (estimatedMinutes - maxMinutes) / 10);
+  }
+
+  if (maxMinutes <= 60 && estimatedMinutes <= 75) score += 10;
+  if (maxMinutes >= 180 && estimatedMinutes >= 120 && destination.departureCategories.includes(originCategory)) score += 7;
+
+  if (destination.durations.includes(input.duration)) {
+    score += 18;
+  } else if (input.duration === 'daytrip') {
+    score -= 18;
+  } else if (durations[input.duration].days >= 3 && destination.durations.includes('2nights')) {
+    score += 8;
+  } else {
+    score -= 4;
+  }
+
+  if (destination.transports.includes(input.transport)) {
+    score += 12;
+  } else if (input.transport === 'other') {
+    score += 4;
+  } else if (input.transport === 'flight') {
+    score -= 12;
+  } else {
+    score -= 4;
+  }
+
+  score += scorePurpose(destination, signals);
+  score += scoreBudget(destination, budgetLevel, estimatedMinutes);
+  score += scoreChildren(destination, childProfile, estimatedMinutes);
+  score += scoreMode(destination, mode, estimatedMinutes);
+
+  return {
+    destination,
+    score,
+    estimatedMinutes,
+    originCategory,
+    signals,
+    budgetLevel,
+    childProfile
+  };
+}
+
+function scorePurpose(destination, signals) {
+  let score = 0;
+  if (signals.has('sea')) score += destination.purposeKeywords.includes('海') || destination.seafood ? 16 : -6;
+  if (signals.has('seafood')) score += destination.seafood ? 18 : -6;
+  if (signals.has('luxury')) {
+    score += destination.lodgeFocus ? 18 : -7;
+    if (destination.purposeKeywords.includes('料理旅館')) score += 10;
+    if (signals.has('sea') && destination.theme === 'sea-ryokan') score += 8;
+  }
+  if (signals.has('onsen')) score += destination.onsen ? 15 : -5;
+  if (signals.has('nature')) score += destination.nature ? 15 : -4;
+  if (signals.has('kids')) score += destination.childFocus.length ? 12 : 0;
+  if (signals.has('rainy')) score += destination.rainyFriendly ? 12 : -8;
+
+  return score;
+}
+
+function scoreBudget(destination, budgetLevel, estimatedMinutes) {
+  if (budgetLevel === 'high') {
+    let score = destination.budgetFit.includes('high') ? 9 : 0;
+    if (destination.lodgeFocus) score += 14;
+    if (destination.onsen) score += 6;
+    if (destination.seafood) score += 6;
+    return score;
+  }
+
+  if (budgetLevel === 'low') {
+    let score = destination.budgetFit.includes('low') ? 12 : -4;
+    if (estimatedMinutes <= 90) score += 7;
+    if (destination.lodgeFocus && !destination.budgetFit.includes('low')) score -= 6;
+    return score;
+  }
+
+  return destination.budgetFit.includes('standard') ? 8 : 0;
+}
+
+function scoreChildren(destination, childProfile, estimatedMinutes) {
+  if (!childProfile.hasChildren) return 0;
+  let score = 0;
+  if (destination.childFocus.includes(childProfile.stage)) score += 12;
+  if (childProfile.stage === 'toddler') {
+    if (estimatedMinutes <= 120) score += 8;
+    if (estimatedMinutes > 180) score -= 8;
+    if (destination.rainyFriendly) score += 5;
+  }
+  if (childProfile.stage === 'preschool') {
+    if (hasAny(destination.spots.join('、'), ['公園', '牧場', '動物', '水族館', '遊園地', '道の駅'])) score += 8;
+  }
+  if (childProfile.stage === 'school') {
+    if (hasAny(destination.purposeKeywords.join('、'), ['体験', '自然', '学び', '高原', '水族館'])) score += 8;
   }
   return score;
 }
 
-function normalizeKeywords(text) {
-  return text
-    .split(/[、,\s]+/)
-    .map((keyword) => keyword.trim())
-    .filter(Boolean);
+function scoreMode(destination, mode, estimatedMinutes) {
+  if (!mode) return 0;
+  if (mode === 'shorter') return Math.max(0, 18 - estimatedMinutes / 12) + (destination.budgetFit.includes('low') ? 5 : 0);
+  if (mode === 'nature') return destination.nature ? 18 : -6;
+  if (mode === 'onsen') return (destination.onsen ? 14 : -6) + (destination.lodgeFocus ? 10 : 0);
+  if (mode === 'rainy') return destination.rainyFriendly ? 18 : -10;
+  return 0;
 }
 
-function customizeName(baseName, input, mode, index) {
-  if (mode === 'shorter') return index === 0 ? '移動短め・近場満足プラン' : baseName;
-  if (mode === 'nature') return index === 0 ? '自然多めの外遊びプラン' : baseName;
-  if (mode === 'onsen') return index === 0 ? '温泉ゆったり滞在プラン' : baseName;
-  if (mode === 'rainy') return index === 0 ? '雨の日でも安心プラン' : baseName;
-  if (/温泉/.test(input.purpose) && index === 1) return '温泉と食事を楽しむプラン';
-  if (/海|海鮮/.test(input.purpose) && index === 1) return '海辺と海鮮を楽しむプラン';
-  if (/自然|公園|山|川/.test(input.purpose) && index === 1) return '自然でのびのび遊ぶプラン';
-  return baseName;
+function selectDistinctDestinations(scored, count) {
+  const selected = [];
+
+  scored.forEach((entry) => {
+    if (selected.length >= count) return;
+    if (!selected.length) {
+      selected.push(entry);
+      return;
+    }
+
+    const sameTheme = selected.some((selectedEntry) => selectedEntry.destination.theme === entry.destination.theme);
+    const sameAreaGroup = selected.some((selectedEntry) => selectedEntry.destination.areaGroup === entry.destination.areaGroup);
+    if (!sameTheme && !sameAreaGroup) selected.push(entry);
+  });
+
+  scored.forEach((entry) => {
+    if (selected.length >= count) return;
+    if (!selected.some((selectedEntry) => selectedEntry.destination.id === entry.destination.id)) selected.push(entry);
+  });
+
+  return selected.slice(0, count);
 }
 
-function buildArea(input, template, index) {
-  const range = {
-    '30m': 'すぐ行ける近場',
-    '1h': '1時間圏内',
-    '2h': '半日で行きやすい近郊',
-    '3h': '少し足を伸ばせる周辺県',
-    '4h': '遠出感のあるエリア',
-    '4hplus': '遠方の人気エリア'
-  }[input.travelTime];
-  return `${input.departure}から${range}の${template.areaType}`;
-}
+function createPlan(entry, input, index) {
+  const destination = entry.destination;
+  const lodgingTypes = chooseLodgingTypes(destination, entry.budgetLevel, input.purpose);
+  const meals = chooseMeals(destination, input);
 
-function getTransportNote(transport) {
-  const notes = {
-    car: '車移動なので、道の駅、サービスエリア、駐車場のあるスポットを休憩軸にします。',
-    train: '電車移動なので、駅近スポット、荷物の少なさ、乗り換え負担の少なさを重視します。',
-    shinkansen: '新幹線移動なので、主要駅から近い宿や観光地を選び、乗り換えを減らします。',
-    flight: '飛行機移動なので、空港からの移動と初日の余裕を優先します。',
-    bus: 'バス移動なので、停留所から歩きやすい場所と待ち時間の少ない行程にします。',
-    'walk-bike': '徒歩・自転車移動なので、距離を絞り、休憩できる場所を細かく入れます。',
-    other: '移動手段に合わせて、乗り換えや待ち時間を詰め込みすぎない設計にします。'
+  return {
+    id: destination.id,
+    label: index === 0 ? '本命' : '別案',
+    name: `${destination.areaName} ${buildPlanSuffix(destination, entry, input)}`,
+    area: buildRecommendedArea(destination),
+    concept: destination.concept,
+    shortReason: buildShortReason(destination, entry, input),
+    reason: buildReason(destination, entry, input),
+    itinerary: buildItinerary(destination, input, meals, lodgingTypes),
+    spots: destination.spots,
+    meals,
+    lodgingTypes,
+    rest: buildRestPoints(destination, input, entry.childProfile),
+    rainy: destination.rainyAlternatives,
+    caution: destination.cautions.concat(officialNotice),
+    fit: buildFamilyFit(destination, input, entry)
   };
-  return notes[transport];
 }
 
-function getTravelTimeNote(travelTime) {
-  if (travelTime === '30m' || travelTime === '1h') return '希望移動時間が短めなので、近場中心で滞在時間を長く取ります。';
-  if (travelTime === '4h' || travelTime === '4hplus') return '長めの移動も許容できるため、遠方候補も含めつつ初日を軽めにします。';
-  return '移動と観光のバランスを取り、子どもの疲れが出る前に休める流れにします。';
+function buildPlanSuffix(destination, entry, input) {
+  if (entry.budgetLevel === 'high' && destination.lodgeFocus) return '宿と食事を楽しむプラン';
+  if (entry.signals.has('seafood') || entry.signals.has('sea')) return '海と食事を楽しむプラン';
+  if (entry.signals.has('nature')) return '自然で遊ぶプラン';
+  if (input.childTotal > 0) return '子連れで動きやすいプラン';
+  return '家族で過ごしやすいプラン';
 }
 
-function getChildNote(input) {
-  if (input.childTotal < 1) return '大人だけでも休憩を挟み、食事と移動に余裕を持たせます。';
-  const ages = input.childAges.length ? `年齢は${input.childAges.join('、')}を想定します。` : '年齢未入力の子どもがいる想定です。';
-  return `子ども${input.childTotal}人、${ages} 昼寝、トイレ、屋内退避を入れやすくします。`;
+function buildRecommendedArea(destination) {
+  return `${destination.areaName}（${destination.spots.slice(0, 3).join('、')}周辺）`;
 }
 
-function buildItinerary(input, template, index) {
-  const duration = durations[input.duration];
-  if (duration.days === 1) {
+function buildShortReason(destination, entry, input) {
+  const matches = summarizeMatches(destination, entry, input).slice(0, 3).join('・');
+  return `${transports[input.transport]}で${formatMinutes(entry.estimatedMinutes)}目安に収まり、${matches}を具体的に組み込みやすいからです。`;
+}
+
+function buildReason(destination, entry, input) {
+  const durationLabel = durations[input.duration].label;
+  const originLabel = getOriginLabel(entry.originCategory);
+  const childNote = buildChildReason(entry.childProfile);
+  return `${originLabel}として相性がよく、${input.departure}発の${transports[input.transport]}移動で${formatMinutes(entry.estimatedMinutes)}が目安です。${durationLabel}なら${destination.spots[0]}、${destination.spots[1]}、${destination.spots[2]}を無理なく分けられ、${chooseMeals(destination, input).slice(0, 2).join('や')}も入れやすいです。${childNote}`;
+}
+
+function summarizeMatches(destination, entry, input) {
+  const matches = [];
+  if (entry.signals.has('sea') && (destination.seafood || destination.purposeKeywords.includes('海'))) matches.push('海沿いの立ち寄り');
+  if (entry.signals.has('seafood') && destination.seafood) matches.push('海鮮・地魚');
+  if ((entry.signals.has('luxury') || entry.budgetLevel === 'high') && destination.lodgeFocus) matches.push('宿重視');
+  if (entry.signals.has('onsen') && destination.onsen) matches.push('温泉');
+  if (entry.signals.has('nature') && destination.nature) matches.push('自然遊び');
+  if (input.childTotal > 0) matches.push('子連れ休憩');
+  if (!matches.length) matches.push(destination.spots[0], destination.meals[0], destination.lodging[entry.budgetLevel][0]);
+  return matches;
+}
+
+function buildChildReason(childProfile) {
+  if (!childProfile.hasChildren) return '大人中心でも、食事と休憩を詰め込みすぎない流れにできます。';
+  if (childProfile.stage === 'toddler') return '0〜2歳がいる場合は、昼寝、授乳、おむつ替え、屋内休憩を優先して組めます。';
+  if (childProfile.stage === 'preschool') return '3〜6歳がいる場合は、公園、動物、水族館、短時間で楽しめるスポットを入れやすいです。';
+  return '7〜12歳がいる場合は、体験、自然遊び、学びの要素を入れやすいです。';
+}
+
+function buildItinerary(destination, input, meals, lodgingTypes) {
+  const spot = (index) => destination.spots[index] || destination.spots[destination.spots.length - 1];
+  const meal = (index) => meals[index] || meals[meals.length - 1];
+  const lodging = lodgingTypes[0];
+
+  if (input.duration === 'daytrip') {
     return [
-      { day: '日帰り', items: ['午前は移動と最初の目的地を短めに設定', `昼は${input.purpose}に寄せた食事候補へ`, '午後はメイン体験と休憩をセットにする', '夕方前に帰路へ向かい、疲れを残しにくくする'] }
+      { day: '午前', items: [`${input.departure}を出発し、${spot(0)}へ。途中でトイレ休憩を1回入れる。`, `${spot(1)}で短めに散策や遊び時間を取る。`] },
+      { day: '昼食', items: [`${meal(0)}を候補にする。子連れならフードコート、道の駅、テイクアウトも見ておく。`] },
+      { day: '午後', items: [`${spot(2)}へ移動し、天気や疲れに合わせて${spot(3)}へ差し替える。`, 'おやつ休憩を入れて、夕方前に切り上げる。'] },
+      { day: '帰路', items: ['渋滞前に帰路へ。車なら道の駅やサービスエリアで最後の休憩を入れる。'] }
     ];
   }
 
-  const plans = [
-    { day: '1日目', items: ['午前は余裕を持って出発', '昼は移動先で食べやすい店を選ぶ', `午後は${template.concept}流れでメイン体験へ`, '早めに宿または滞在拠点へ入る'] },
-    { day: '2日目', items: ['朝は宿周辺か駅近で軽く散策', '昼は地元名物や子ども向けメニューのある店へ', '午後は短時間の観光または屋内施設へ', '混雑前に帰路へ向かう'] }
+  if (input.duration === '1night') {
+    return [
+      { day: '1日目', items: [`午前は${input.departure}を出発し、${spot(0)}へ。`, `昼食は${meal(0)}。午後は${spot(1)}を短めに楽しむ。`, `夕方は${lodging}に入り、温泉や部屋で休む時間を確保する。`] },
+      { day: '2日目', items: [`朝は宿周辺を散策し、${spot(2)}へ。`, `昼食は${meal(1)}。午後は${spot(3)}か道の駅で休憩してから帰路へ。`] }
+    ];
+  }
+
+  if (input.duration === '2nights') {
+    return [
+      { day: '1日目', items: [`午前は${input.departure}を出発し、休憩を挟みながら${spot(0)}へ。`, `昼食は${meal(0)}。午後は${spot(1)}をメインにして、夕方は${lodging}へ。`] },
+      { day: '2日目', items: [`午前は${spot(2)}をゆっくり楽しむ。`, `昼食は${meal(1)}。午後は${spot(3)}や周辺散策にして、夕方は2泊目の宿で休む。`, '2日目は帰路に向かわず、昼寝や温泉時間を長めに取る。'] },
+      { day: '3日目', items: [`午前は${spot(4)}か道の駅で軽く過ごす。`, `昼食は${meal(2)}。午後は混雑前に帰路へ向かう。`] }
+    ];
+  }
+
+  if (input.duration === '3nights') {
+    return [
+      { day: '1日目', items: [`${input.departure}を出発し、${spot(0)}と${spot(1)}を無理なく回る。`, `夕方は${lodging}で早めに休む。`] },
+      { day: '2日目', items: [`${spot(2)}をメインにして、昼食は${meal(0)}。`, `午後は${spot(3)}へ。疲れたら宿やカフェ休憩へ切り替える。`] },
+      { day: '3日目', items: [`${spot(4)}や周辺の自然散策を追加する。`, `昼食は${meal(1)}。夕方は宿で荷物整理と休憩をする。`] },
+      { day: '4日目', items: [`午前は道の駅や市場で買い物。`, `昼食は${meal(2)}。午後は余裕を持って帰路へ。`] }
+    ];
+  }
+
+  return [
+    { day: '初日', items: [`${input.departure}を出発し、${spot(0)}と${spot(1)}を軽めに回る。`, `夕方は${lodging}で休む。`] },
+    { day: '中日', items: [`${spot(2)}、${spot(3)}、${spot(4)}から天気と体力に合わせて選ぶ。`, `昼食は${meal(0)}や${meal(1)}を候補にする。何もしない半日も作る。`] },
+    { day: '最終日', items: [`道の駅や市場で買い物をして、昼食は${meal(2)}。`, '午後は無理をせず帰路へ。'] }
   ];
-
-  if (duration.days >= 3) {
-    plans.splice(1, 0, { day: '中日', items: ['移動を少なめにして、目的に合う体験を長めに確保', '昼寝やカフェ休憩を予定に組み込む', '夕方は宿の温泉や周辺散歩で整える'] });
-  }
-
-  if (duration.days >= 4) {
-    plans.splice(plans.length - 1, 0, { day: '追加日', items: ['遠方スポットや自然エリアを半日単位で追加', '天気が悪ければ屋内施設へ差し替え', '洗濯、荷物整理、早寝の時間を確保'] });
-  }
-
-  if (input.duration === 'longer') {
-    plans.splice(plans.length - 1, 0, { day: '長期滞在日', items: ['連泊拠点を作り、日ごとに近場を回る', '何もしない半日を作って疲れをリセット', '目的に合う体験を予約制と自由行動に分ける'] });
-  }
-
-  return plans;
 }
 
-function buildMeals(purpose, budget) {
-  const ideas = [];
-  if (/海|海鮮|魚|寿司/.test(purpose)) ideas.push('海鮮丼、回転寿司、浜焼きなど取り分けしやすい店');
-  if (/温泉/.test(purpose)) ideas.push('宿の会席、定食、温泉街の軽食');
-  if (/自然|公園|山|川/.test(purpose)) ideas.push('ベーカリー、道の駅、テイクアウト弁当');
-  if (!ideas.length) ideas.push('地元定食、うどん、カレー、フードコートなど子どもが選びやすい店');
-  if (budget === 'under20' || budget === 'under40') ideas.push('昼食をメインにして、夕食は軽めにすると調整しやすいです');
-  return ideas.join('。');
-}
-
-function buildRestPoints(input) {
-  const base = input.childTotal > 0 ? '授乳室、トイレ、ベンチ、屋内休憩所を事前に確認します。' : 'カフェや駅ビルなど、予定を立て直せる休憩場所を入れます。';
-  if (input.transport === 'car') return `${base} 車なら道の駅、サービスエリア、広めの駐車場を固定休憩にします。`;
-  if (input.transport === 'train' || input.transport === 'shinkansen') return `${base} 電車系なら駅近施設とコインロッカーを前提にします。`;
-  if (input.transport === 'flight') return `${base} 空港内で食事、トイレ、荷物整理の時間を長めに取ります。`;
-  return base;
-}
-
-function buildRainyPlan(input, mode) {
-  const core = '水族館、科学館、屋内遊び場、駅ビル、宿の温浴施設に差し替えます。';
-  if (mode === 'rainy') return `${core} 最初から屋内中心にして、屋外は晴れたら追加する扱いにします。`;
-  if (/雨/.test(input.purpose)) return `${core} 入力目的が雨の日寄りなので、屋外スポットは短時間にします。`;
-  return `${core} 予約が必要な施設は前日までに候補を2つ持っておくと安心です。`;
-}
-
-function buildCaution(input) {
-  const pieces = ['食事時間とチェックイン時刻を詰め込みすぎないこと。'];
-  if (input.transport === 'car') pieces.push('駐車場の満空、渋滞、チャイルドシート休憩を確認してください。');
-  if (input.transport === 'train' || input.transport === 'shinkansen') pieces.push('乗り換え回数、エレベーター位置、荷物量を確認してください。');
-  if (input.transport === 'flight') pieces.push('空港到着後の移動は初日に詰め込まず、遅延時の余白を残してください。');
-  if (input.travelTime === '4hplus') pieces.push('遠方候補は初日と最終日を軽くするのが安全です。');
-  return pieces.join(' ');
-}
-
-function buildFamilyFit(input, template) {
+function chooseMeals(destination, input) {
+  const meals = [...destination.meals];
   if (input.childTotal > 0) {
-    return `${input.childTotal}人の子ども連れで、${input.purpose}を楽しみたい家族。${template.fit}`;
+    meals.push('子どもメニューがありそうな店');
+    meals.push('道の駅・フードコート');
+    meals.push('テイクアウトやベーカリー');
   }
-  return `${input.purpose}を大人中心に楽しみつつ、移動と食事に余裕を持ちたい家族。`;
+  if (getOriginCategory(input.departure) === 'niigata') {
+    meals.push('笹団子');
+    meals.push('地酒は大人向けの注記として扱う');
+  }
+  return unique(meals);
+}
+
+function chooseLodgingTypes(destination, budgetLevel, purpose) {
+  const wantsLuxury = hasAny(purpose, purposeSignalWords.luxury) || hasAny(purpose, purposeSignalWords.onsen);
+  if (budgetLevel === 'high' || wantsLuxury) return destination.lodging.high;
+  if (budgetLevel === 'low') return destination.lodging.low;
+  return destination.lodging.standard;
+}
+
+function buildRestPoints(destination, input, childProfile) {
+  const points = [...destination.childFriendlyPoints];
+  if (input.transport === 'car') points.push('サービスエリア、道の駅、広めの駐車場を休憩軸にする');
+  if (input.transport === 'train' || input.transport === 'shinkansen') points.push('駅近施設、コインロッカー、駅ビルのトイレを先に確認する');
+  if (childProfile.stage === 'toddler') points.push('授乳、おむつ替え、昼寝のために屋内休憩を長めに取る');
+  if (childProfile.stage === 'preschool') points.push('公園、牧場、水族館など短時間で達成感がある場所を挟む');
+  if (childProfile.stage === 'school') points.push('体験や学びの前後に、売店やカフェ休憩を入れる');
+  return unique(points);
+}
+
+function buildFamilyFit(destination, input, entry) {
+  const people = `大人${input.adultTotal}人、子ども${input.childTotal}人`;
+  if (!input.childTotal) {
+    return `${people}で、${destination.meals[0]}や${entry.budgetLevel === 'high' ? destination.lodging.high[0] : destination.lodging.standard[0]}を落ち着いて楽しみたい家族。`;
+  }
+  const childText = input.childAges.length ? `${input.childAges.join('・')}の子ども` : '子ども';
+  if (entry.childProfile.stage === 'toddler') return `${people}で、${childText}の昼寝や屋内休憩を優先しながら、${destination.areaName}を短めに楽しみたい家族。`;
+  if (entry.childProfile.stage === 'preschool') return `${people}で、${childText}が公園、水族館、牧場などを短時間で楽しめる旅にしたい家族。`;
+  return `${people}で、${childText}に自然体験や学びの要素も入れたい家族。`;
+}
+
+function getOriginCategory(departure) {
+  const text = normalizeText(departure);
+  if (hasAny(text, ['新潟', '長岡', '新発田', '燕', '三条', '上越', '妙高', '村上', '魚沼', '湯沢', '佐渡'])) return 'niigata';
+  if (hasAny(text, ['上牧', '高槻', '大阪', '京都', '関西', '枚方', '茨木', '吹田', '神戸', '兵庫', '奈良', '滋賀', '和歌山', '堺'])) return 'kansai';
+  return 'generic';
+}
+
+function getOriginLabel(originCategory) {
+  if (originCategory === 'kansai') return '関西・大阪・高槻・上牧・京都発の候補';
+  if (originCategory === 'niigata') return '新潟発の候補';
+  return '一般的な近郊旅行の候補';
+}
+
+function getEstimatedMinutes(destination, originCategory) {
+  return destination.estimatedMinutes[originCategory] || destination.estimatedMinutes.generic;
+}
+
+function analyzePurpose(purpose) {
+  const text = normalizeText(purpose);
+  const signals = new Set();
+  Object.entries(purposeSignalWords).forEach(([key, words]) => {
+    if (hasAny(text, words)) signals.add(key);
+  });
+  return signals;
+}
+
+function getBudgetLevel(budget) {
+  if (budget === 'under20' || budget === 'under40') return 'low';
+  if (budget === '100to150' || budget === '150to200' || budget === 'over200') return 'high';
+  return 'standard';
+}
+
+function getChildProfile(input) {
+  if (input.childTotal < 1) return { hasChildren: false, stage: 'adult', ages: [] };
+  const ages = input.childAges.map(parseAge).filter((age) => Number.isFinite(age));
+  if (!ages.length) return { hasChildren: true, stage: 'preschool', ages: [] };
+  if (ages.some((age) => age <= 2)) return { hasChildren: true, stage: 'toddler', ages };
+  if (ages.some((age) => age <= 6)) return { hasChildren: true, stage: 'preschool', ages };
+  return { hasChildren: true, stage: 'school', ages };
+}
+
+function parseAge(label) {
+  const match = String(label).match(/\d+/);
+  return match ? Number(match[0]) : NaN;
+}
+
+function formatMinutes(minutes) {
+  if (minutes < 60) return `約${minutes}分`;
+  const hours = Math.floor(minutes / 60);
+  const rest = minutes % 60;
+  return rest ? `約${hours}時間${rest}分` : `約${hours}時間`;
+}
+
+function normalizeText(value) {
+  return String(value || '').toLowerCase().replace(/[、，,／/・\s]+/g, ' ');
+}
+
+function hasAny(text, words) {
+  const normalized = normalizeText(text);
+  return words.some((word) => normalized.includes(normalizeText(word)));
+}
+
+function unique(items) {
+  return [...new Set(items.filter(Boolean))];
 }
 
 function renderPlanCard(plan) {
@@ -458,20 +1203,22 @@ function renderPlanDetail(plan) {
         <span class="plan-label">${escapeHtml(plan.label)}</span>
         <h3>${escapeHtml(plan.name)}</h3>
       </div>
-      ${detail('おすすめエリア', plan.area)}
-      ${detail('コンセプト', plan.concept)}
-      ${detail('おすすめ理由', plan.reason)}
+      ${detailText('おすすめエリア', plan.area)}
+      ${detailText('コンセプト', plan.concept)}
+      ${detailText('おすすめ理由', plan.reason)}
       <section class="detail-row">
         <h4>日数に応じた旅程</h4>
         <div class="itinerary-grid">
           ${plan.itinerary.map((day) => dayBlock(day.day, day.items)).join('')}
         </div>
       </section>
-      ${detail('食事候補', plan.meals)}
-      ${detail('子連れ休憩ポイント', plan.rest)}
-      ${detail('雨の日代替案', plan.rainy)}
-      ${detail('注意点', plan.caution)}
-      ${detail('このプランが向いている家族', plan.fit)}
+      ${detailList('代表的な立ち寄りスポット', plan.spots)}
+      ${detailList('食事候補', plan.meals)}
+      ${detailList('宿タイプ', plan.lodgingTypes)}
+      ${detailList('子連れ休憩ポイント', plan.rest)}
+      ${detailList('雨の日代替案', plan.rainy)}
+      ${detailList('注意点', plan.caution)}
+      ${detailText('このプランが向いている家族', plan.fit)}
     </article>
   `;
 }
@@ -487,11 +1234,22 @@ function dayBlock(title, items) {
   `;
 }
 
-function detail(title, body) {
+function detailText(title, body) {
   return `
     <section class="detail-row">
       <h4>${escapeHtml(title)}</h4>
       <p>${escapeHtml(body)}</p>
+    </section>
+  `;
+}
+
+function detailList(title, items) {
+  return `
+    <section class="detail-row">
+      <h4>${escapeHtml(title)}</h4>
+      <ul class="detail-list">
+        ${items.map((item) => `<li>${escapeHtml(item)}</li>`).join('')}
+      </ul>
     </section>
   `;
 }

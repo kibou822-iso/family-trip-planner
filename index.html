@@ -8,21 +8,21 @@
 </head>
 <body>
   <header class="hero">
-    <div class="hero__badge">家族旅行をサクッと相談</div>
+    <div class="hero__badge">家族旅行をさくっと相談</div>
     <h1>ファミリー旅行プランナー</h1>
-    <p>出発地、日数、移動手段、希望に合わせて、子連れでも動きやすい旅行プランを提案します。</p>
+    <p>出発地、日数、移動手段、予算、子どもの年齢に合わせて、具体的な候補地と旅程を提案します。</p>
   </header>
 
   <main class="app-shell">
     <section class="card intro-card" aria-labelledby="intro-title">
       <h2 id="intro-title">家族の希望を入力してください</h2>
-      <p>外部APIや予約機能は使わず、GitHub Pagesでそのまま動く静的な旅行相談アプリです。</p>
+      <p>外部APIや予約機能は使わず、静的な候補地データから旅行相談のたたき台を作ります。</p>
     </section>
 
     <form id="tripForm" class="card form-card">
       <label class="wide-field">
         出発地
-        <input type="text" id="departure" name="departure" placeholder="市または地域" required>
+        <input type="text" id="departure" name="departure" placeholder="例：上牧駅、高槻、大阪、新潟市" required>
       </label>
 
       <label>
@@ -63,7 +63,7 @@
 
       <label class="wide-field">
         目的
-        <input type="text" id="purpose" name="purpose" placeholder="温泉、海鮮、自然、雨の日、子どもが遊べる場所など" required>
+        <input type="text" id="purpose" name="purpose" placeholder="例：自然、海、高級旅館、温泉、子どもが遊べる" required>
       </label>
 
       <label>
@@ -94,14 +94,14 @@
       <label class="wide-field">
         予算
         <select id="budget" name="budget" required>
-          <option value="under20">〜2万円</option>
-          <option value="under40">〜4万円</option>
-          <option value="under60" selected>〜6万円</option>
-          <option value="under80">〜8万円</option>
-          <option value="under100">〜10万円</option>
+          <option value="under20">2万円未満</option>
+          <option value="under40">2〜4万円</option>
+          <option value="under60" selected>4〜6万円</option>
+          <option value="under80">6〜8万円</option>
+          <option value="under100">8〜10万円</option>
           <option value="100to150">10〜15万円</option>
           <option value="150to200">15〜20万円</option>
-          <option value="over200">それ以上</option>
+          <option value="over200">20万円以上</option>
         </select>
       </label>
 
@@ -112,7 +112,7 @@
   </main>
 
   <footer>
-    <p>HTML / CSS / JavaScriptのみで動作します。</p>
+    <p>営業時間、休館日、料金、予約可否は公式サイトで確認してください。</p>
   </footer>
 
   <script src="script.js"></script>

@@ -54,7 +54,8 @@ h5 {
 }
 
 h1 {
-  font-size: clamp(2rem, 9vw, 3rem);
+  font-size: 2.15rem;
+  letter-spacing: 0;
 }
 
 .hero p,
@@ -121,6 +122,7 @@ button {
   padding: 12px 14px;
   font: inherit;
   border-radius: 8px;
+  overflow-wrap: anywhere;
 }
 
 input,
@@ -265,6 +267,7 @@ button:active {
 .plan-card-title {
   font-size: 1.08rem;
   font-weight: 850;
+  overflow-wrap: anywhere;
 }
 
 .plan-card-area,
@@ -318,6 +321,18 @@ button:active {
   margin: 0;
 }
 
+.detail-list {
+  display: grid;
+  gap: 7px;
+  padding-left: 1.2em;
+  margin: 0;
+}
+
+.detail-row li,
+.day-card li {
+  overflow-wrap: anywhere;
+}
+
 .itinerary-grid {
   display: grid;
   gap: 12px;
@@ -342,6 +357,10 @@ footer {
 }
 
 @media (min-width: 680px) {
+  h1 {
+    font-size: 2.7rem;
+  }
+
   .form-card {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
