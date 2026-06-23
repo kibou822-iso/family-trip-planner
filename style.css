@@ -74,7 +74,8 @@ footer p {
 .result-toolbar,
 .summary-panel,
 .detail-panel,
-.trip-plan {
+.trip-plan,
+.history-card {
   background: var(--card);
   border: 1px solid var(--line);
   border-radius: 8px;
@@ -212,13 +213,61 @@ button:active {
 }
 
 .summary-panel,
-.detail-panel {
+.detail-panel,
+.history-card {
   padding: 16px;
+}
+
+.summary-heading,
+.history-heading {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.summary-heading p,
+.history-heading p {
+  margin: 0;
+  color: var(--muted);
+}
+
+.gacha-buttons {
+  display: grid;
+  gap: 8px;
+}
+
+.gacha-button {
+  color: #fff;
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.notice-list,
+.reason-list {
+  display: grid;
+  gap: 7px;
+  padding-left: 1.2em;
+  margin: 12px 0 0;
+}
+
+.notice-list {
+  color: var(--primary-dark);
+  font-weight: 700;
 }
 
 .plan-card-list {
   display: grid;
   gap: 12px;
+}
+
+.candidate-group {
+  display: grid;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.candidate-group h4 {
+  color: var(--accent);
 }
 
 .plan-summary-card {
@@ -268,6 +317,22 @@ button:active {
   font-size: 1.08rem;
   font-weight: 850;
   overflow-wrap: anywhere;
+}
+
+.plan-card-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.plan-card-badges span {
+  padding: 4px 8px;
+  color: #176b62;
+  font-size: 0.78rem;
+  font-weight: 800;
+  background: #edf7ec;
+  border: 1px solid #cfe6cc;
+  border-radius: 999px;
 }
 
 .plan-card-area,
@@ -338,6 +403,66 @@ button:active {
   gap: 12px;
 }
 
+.table-wrap {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.itinerary-table,
+.cost-table {
+  width: 100%;
+  min-width: 680px;
+  border-collapse: collapse;
+  background: #fffdf8;
+}
+
+.itinerary-table th,
+.itinerary-table td,
+.cost-table th,
+.cost-table td {
+  padding: 10px;
+  text-align: left;
+  vertical-align: top;
+  border: 1px solid #ead8bd;
+}
+
+.itinerary-table th,
+.cost-table th {
+  color: var(--primary-dark);
+  font-weight: 850;
+  background: #fff3df;
+}
+
+.info-card-grid {
+  display: grid;
+  gap: 10px;
+}
+
+.mini-card {
+  padding: 12px;
+  background: #fffdf8;
+  border: 1px solid #ead8bd;
+  border-radius: 8px;
+}
+
+.mini-card h5 {
+  color: var(--accent);
+}
+
+.mini-card p,
+.budget-note {
+  margin: 0 0 8px;
+}
+
+.budget-note {
+  padding: 10px 12px;
+  color: var(--primary-dark);
+  font-weight: 800;
+  background: #fff3df;
+  border: 1px solid #efc19d;
+  border-radius: 8px;
+}
+
 .day-card ul {
   display: grid;
   gap: 8px;
@@ -347,6 +472,58 @@ button:active {
 
 .is-hidden {
   display: none;
+}
+
+.history-card {
+  display: grid;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.history-card.is-hidden {
+  display: none;
+}
+
+.history-list {
+  display: grid;
+  gap: 10px;
+}
+
+.history-item {
+  display: grid;
+  gap: 5px;
+  min-height: 0;
+  padding: 12px;
+  margin: 0;
+  color: var(--text);
+  text-align: left;
+  background: #fffdf8;
+  border: 1px solid var(--line);
+  box-shadow: none;
+}
+
+.history-item:hover,
+.history-item:focus-visible {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+}
+
+.history-item__time {
+  color: var(--primary-dark);
+  font-weight: 850;
+}
+
+.history-item__conditions {
+  font-weight: 750;
+}
+
+.history-item__summary {
+  color: var(--muted);
+  font-size: 0.93rem;
+}
+
+.clear-history-button {
+  width: fit-content;
 }
 
 footer {
@@ -371,8 +548,19 @@ footer {
 
   .age-grid,
   .itinerary-grid,
-  .plan-card-list {
+  .plan-card-list,
+  .info-card-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .summary-heading,
+  .history-heading {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: start;
+  }
+
+  .gacha-buttons {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 
